@@ -17,7 +17,7 @@ jobs:
               with:
                 node-version: 15.x
             - name: Install JS testing dependencies
-              run: npm ci
+              run: npm install
             - name: Install Playwright dependencies
               run: npx playwright install-deps
             - name: Install browsers
