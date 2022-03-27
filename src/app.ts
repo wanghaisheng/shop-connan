@@ -162,7 +162,7 @@ async function get_shopify_defaut_sitemap(url: string) {
     const sitemapcandiates = await searchsitemap(url)
     const sitemapcandiates_url_list: Array<string> = []
     if (sitemapcandiates.length > 1) {
-      for (let i = 0; i < sitemapcandiates.length; i++) {
+      for (let i = 0; i < 1; i++) {
         const sitemapcandiates_url = sitemapcandiates[i]
         sleep(500);
 
