@@ -255,7 +255,8 @@ var myMkdirSync = function (dir: String) {
 
   try {
     fs.mkdirSync(dir)
-  } catch (err:unknown) {
+
+  } catch (err: unknown) {
     if (err.code == 'ENOENT') {
       console.log('parent dir', dir)
       myMkdirSync(path.dirname(dir)) //create parent dir
