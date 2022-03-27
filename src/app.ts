@@ -23,8 +23,7 @@ async function searchsitemap(url: string) {
     {
       headless: false,
       ignoreHTTPSErrors: true,
-      proxy: { server: 'socks5://127.0.0.1:1080' }
-      ,
+      // proxy: { server: 'socks5://127.0.0.1:1080' },
     });
   const page = await context.newPage();
 
@@ -90,8 +89,7 @@ async function diff_sitemapindex_ornot_pl(url: string) {
     {
       headless: false,
       ignoreHTTPSErrors: true,
-      proxy: { server: 'socks5://127.0.0.1:1080' }
-      ,
+      // proxy: { server: 'socks5://127.0.0.1:1080' },
     });
   const page = await context.newPage();
   const res =await page.goto(url, { timeout: 0 })
@@ -211,8 +209,7 @@ async function checkstoreispassword(url: string) {
     {
       headless: false,
       ignoreHTTPSErrors: true,
-      proxy: { server: 'socks5://127.0.0.1:1080' }
-      ,
+      // proxy: { server: 'socks5://127.0.0.1:1080' }      ,
     });
   const page = await browser.newPage();
 
@@ -276,7 +273,7 @@ async function homepage(url: string) {
     {
       headless: false,
       ignoreHTTPSErrors: true,
-      proxy: { server: 'socks5://127.0.0.1:1080' },
+//      proxy: { server: 'socks5://127.0.0.1:1080' },
     });
   const page = await context.newPage();
 
@@ -326,7 +323,7 @@ async function leibiexiangqing(cato: Array<string>) {
     {
       headless: false,
       ignoreHTTPSErrors: true,
-      proxy: { server: 'socks5://127.0.0.1:1080' },
+//      proxy: { server: 'socks5://127.0.0.1:1080' },
     });
   const p_page = await context.newPage();
   let domains: Array<string> = []
