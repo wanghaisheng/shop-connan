@@ -2,7 +2,6 @@
 const { chromium, webkit, firefox } = require("playwright");
 const http = require('http');
 const express = require('express');
-import axios from 'axios';
 import { Request, Response, Application } from 'express';
 const cors = require("cors");
 const fs = require("fs");
@@ -16,9 +15,6 @@ const cheerio = require('cheerio');
 var path = require('path');
 const app: Application = express();
 app.use(cors());
-
-
-
 
 async function searchsitemap(url: string) {
   const browser = await webkit.launch();
