@@ -1,0 +1,67 @@
+Arguments: 
+  C:\Program Files\nodejs\node.exe C:\Users\dubo\AppData\Roaming\npm\node_modules\yarn\bin\yarn.js
+
+PATH: 
+  D:\Program Files\anaconda3;D:\Program Files\anaconda3\Library\mingw-w64\bin;D:\Program Files\anaconda3\Library\usr\bin;D:\Program Files\anaconda3\Library\bin;D:\Program Files\anaconda3\Scripts;D:\Program Files\anaconda3\bin;D:\Program Files\anaconda3\condabin;C:\Users\dubo\bin;C:\Program Files\Git\mingw64\bin;C:\Program Files\Git\usr\local\bin;C:\Program Files\Git\usr\bin;C:\Program Files\Git\usr\bin;C:\Program Files\Git\mingw64\bin;C:\Program Files\Git\usr\bin;C:\Users\dubo\bin;D:\Program Files\Go\bin;C:\Python27;C:\Python27\Scripts;C:\Program Files (x86)\Microsoft SDKs\Azure\CLI2\wbin;C:\Program Files (x86)\Common Files\Oracle\Java\javapath;D:\Program Files\ImageMagick-7.1.0-Q16-HDRI;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0;C:\WINDOWS\System32\OpenSSH;D:\opencv4.5;C:\Users\dubo\AppData\Roaming\nvm;C:\Program Files\nodejs;C:\Program Files\nodejs;C:\ProgramData\chocolatey\bin;D:\Program Files\Go\bin;D:\Program Files (x86)\Streamlink\bin;D:\Program Files\tdm-gcc\bin;D:\Download\audio-visual\make-reddit-video\auddit\assets\driver;C:\Program Files (x86)\Common Files\Thunder Network\KanKan\Codecs;D:\Program Files (x86)\Tencent\微信web开发者工具\dll;C:\Program Files\Git\cmd;D:\Program Files\Redis;D:\Program Files\Microsoft\Azure Functions Core Tools;C:\Program Files (x86)\GTK2-Runtime\bin;C:\Users\dubo\AppData\Roaming\edgedb\bin;D:\Program Files\anaconda3;D:\Program Files\anaconda3\Library\mingw-w64\bin;D:\Program Files\anaconda3\Library\usr\bin;D:\Program Files\anaconda3\Library\bin;D:\Program Files\anaconda3\Scripts;C:\Users\dubo\AppData\Local\Microsoft\WindowsApps;D:\opencv4.5;C:\Users\dubo\AppData\Roaming\nvm;C:\Program Files\nodejs;C:\Users\dubo\AppData\Roaming\npm;D:\Program Files (x86)\FFmpeg-old\bin;C:\Users\dubo\go\bin;D:\Program Files\Go;D:\Program Files\go-path;D:\Program Files\tdm-gcc\bin;D:\Programs\Microsoft VS Code\bin;C:\Program Files (x86)\sox-14-4-2;D:\Program Files (x86)\mitmproxy\bin;D:\Program Files\proxychains_0.6.8_cygwin_x64;C:\Program Files\MKVToolNix;C:\libjpeg-turbo64\bin;D:\Program Files\heroku\bin;C:\Program Files\Git\usr\bin\vendor_perl;C:\Program Files\Git\usr\bin\core_perl
+
+Yarn version: 
+  1.22.10
+
+Node version: 
+  14.17.0
+
+Platform: 
+  win32 x64
+
+Trace: 
+  Error: https://registry.npm.taobao.org/node-cron: ESOCKETTIMEDOUT
+      at ClientRequest.<anonymous> (C:\Users\dubo\AppData\Roaming\npm\node_modules\yarn\lib\cli.js:141289:19)
+      at Object.onceWrapper (events.js:482:28)
+      at ClientRequest.emit (events.js:376:20)
+      at TLSSocket.emitRequestTimeout (_http_client.js:790:9)
+      at Object.onceWrapper (events.js:482:28)
+      at TLSSocket.emit (events.js:388:22)
+      at TLSSocket.Socket._onTimeout (net.js:483:8)
+      at listOnTimeout (internal/timers.js:555:17)
+      at processTimers (internal/timers.js:498:7)
+
+npm manifest: 
+  {
+    "name": "backend",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+      "start": "node dist/app.js",
+      "dev": "nodemon src/app.ts",
+      "build": "tsc -p ."
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+      "cheerio": "^1.0.0-rc.10",
+      "concat-stream": "^2.0.0",
+      "cors": "^2.8.5",
+      "express": "^4.17.1",
+      "node-cron": "^3.0.0",
+      "serp-parser": "^1.5.0",
+      "zip-local": "^0.3.5",
+      "playwright": "^1.20.0"
+  
+    },
+    "devDependencies": {
+      "@playwright/test": "^1.20.0",
+      "@types/express": "^4.17.11",
+      "@types/node": "^14.14.41",
+      "nodemon": "^2.0.7",
+      "ts-node": "^9.1.1",
+      "typescript": "^4.2.4"
+    }
+  }
+
+yarn manifest: 
+  No manifest
+
+Lockfile: 
+  No lockfile
