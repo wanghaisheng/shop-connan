@@ -27,7 +27,7 @@ async function searchsitemap(url: string) {
     });
   const page = await context.newPage();
 
-  await page.goto('https://www.google.com/search?q=' + url + '++sitemap.xml', { timeout: 0 });
+  await page.goto('https://www.google.com/search?q=' + url + '++sitemap.xml');
 
 
   const parser = new GoogleSERP(await page.content());
@@ -92,7 +92,7 @@ async function diff_sitemapindex_ornot_pl(url: string) {
       // proxy: { server: 'socks5://127.0.0.1:1080' },
     });
   const page = await context.newPage();
-  const res =await page.goto(url, { timeout: 0 })
+  const res =await page.goto(url)
 
   // console.log(await res.body())
   const $ = cheerio.load(await res.body());
@@ -213,7 +213,7 @@ async function checkstoreispassword(url: string) {
     });
   const page = await browser.newPage();
 
-  const res = await page.goto(url, { timeout: 0 });
+  const res = await page.goto(url);
   const redirect_url = res.url
   if (redirect_url.includes('password')) {
     console.log('this site is under construction')
@@ -278,7 +278,7 @@ async function homepage(url: string) {
   const page = await context.newPage();
 
 
-  await page.goto('https://www.merchantgenius.io', { timeout: 0 })
+  await page.goto('https://www.merchantgenius.io')
   // console.log(await page.content())
   const yuefen = page.locator('xpath=//html/body/main/div/div[2]/a')
   await upsertFile('./shopify-catalog.txt')
@@ -339,8 +339,8 @@ async function leibiexiangqing(cato: Array<string>) {
     if (history.length == 1) {
       console.log('dig url published on ', url)
 
-      await p_page.goto(url, { timeout: 0 })
-      // await p_page.goto(url, { timeout: 0 })
+      await p_page.goto(url)
+      // await p_page.goto(url)
 
       // console.log(await p_page.content())
       const shopurls = p_page.locator('.blogImage [href^="/shop/url/"]')
@@ -636,8 +636,8 @@ app.listen(8083, () => {
   const options = {
     hostname: 'localhost',
     port: 8083,
-//     path: '/top500',
-    path: '/merchantgenius',
+    path: '/top500',
+    // path: '/merchantgenius',
     method: 'GET'
   }
   http.get(options, function (error: any, response: { statusCode: number; }, body: any) {
