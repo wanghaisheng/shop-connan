@@ -77,7 +77,7 @@ function rootdomainfromurl(url: string | URL) {
   const elem2 = elems[iMax];
 
   const isSecondLevelDomain = iMax >= 3 && (elem1 + elem2).length <= 5;
-  return 'https://'+(isSecondLevelDomain ? elems[iMax - 2] + '.' : '') + elem1 + '.' + elem2;
+  return (isSecondLevelDomain ? elems[iMax - 2] + '.' : '') + elem1 + '.' + elem2;
 
 }
 
@@ -507,6 +507,9 @@ app.get("/top500", async (req: Request, res: Response) => {
 
     }else{
     const sitemapurl = await get_shopify_defaut_sitemap(uniqdomains[i])
+    if(sitemapurl.length==0){
+      console.log('there is no sitemap url could found')
+    }else{
     const url_list = await parseSitemap(sitemapurl[0])
 
     const log = fs.createWriteStream('sitemaps/' +filename+ '-sitemap-urls.txt', { flags: 'a' });
@@ -515,6 +518,8 @@ app.get("/top500", async (req: Request, res: Response) => {
         log.write(url_list[i] + '\n')
       }
     }
+
+  }
   }
   }
   // compress 
