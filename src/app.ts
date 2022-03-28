@@ -34,13 +34,13 @@ async function searchsitemap(url: string) {
   const parser = new GoogleSERP(await page.content());
   console.dir(parser.serp['organic']);
 
-  const sitemapcandidate: Array<string> = []
+  let sitemapcandidate: Array<string> = []
   for (let i = 0; i < parser.serp['organic'].length; i++) {
     let result = parser.serp['organic'][i]['url']
     const rootdomain = rootdomainfromurl(url)
     if (result.includes('.xml') || result.includes(rootdomain)) {
 
-      fs.writeFileSync("shopify-sitemap-mapping.txt", +',' + result)
+      // fs.writeFileSync("shopify-sitemap-mapping.txt", +',' + result)
       sitemapcandidate.push(result)
     }
     //use i instead of 0
@@ -159,8 +159,9 @@ async function get_shopify_defaut_sitemap(url: string) {
   console.log('domain-', url, '--sitemapurl', default_sitemap_url)
   const default_sitemap_url_list = await parseSitemap(default_sitemap_url)
   if (default_sitemap_url_list.length == 0) {
-    console.log('try search sitemap url')
     const sitemapcandiates = await searchsitemap(url)
+    console.log('try search sitemap url',sitemapcandiates[0])
+
     const sitemapcandiates_url_list: Array<string> = []
     if (sitemapcandiates.length > 1) {
       for (let i = 0; i < 1; i++) {
@@ -518,6 +519,7 @@ app.get("/top500", async (req: Request, res: Response) => {
     }
     console.log('sitemaps file is', filename)
     const done = await upsertFile('sitemaps/' + filename + '-sitemap-urls.txt')
+    let sitemapurl=''
     if (done.length > 1) {
       console.log('this shop has scraped urls')
       url_list = crawlUrls(uniqdomains[i])
@@ -526,24 +528,25 @@ app.get("/top500", async (req: Request, res: Response) => {
       if (sitemapurl.length == 0) {
         console.log('there is no sitemap url could found')
       } else {
-        url_list = await parseSitemap(sitemapurl[0])
+        // url_list = await parseSitemap(sitemapurl[0])
+        console.log('there is  sitemap url  found',sitemapurl)
+        const url_list = await parseSitemap(sitemapurl[0])
+  
+        const log = fs.createWriteStream('sitemaps/' +filename+ '-sitemap-urls.txt', { flags: 'a' });
+        if (url_list.length > 1) {
+          for (let i = 0; i < url_list.length; i++) {
+            log.write(url_list[i] + '\n')
+          }
+        }
       }
+
+
+
+  
+  
+
     }
 
-    const log = fs.createWriteStream('sitemaps/' + filename + '-sitemap-urls.txt', { flags: 'a' });
-    const sitemapurl = await get_shopify_defaut_sitemap(uniqdomains[i])
-    if(sitemapurl.length==0){
-      console.log('there is no sitemap url could found')
-    }else{
-    const url_list = await parseSitemap(sitemapurl[0])
-
-    const log = fs.createWriteStream('sitemaps/' +filename+ '-sitemap-urls.txt', { flags: 'a' });
-    if (url_list.length > 1) {
-      for (let i = 0; i < url_list.length; i++) {
-        log.write(url_list[i] + '\n')
-      }
-    }
-}
 
   }
   // compress 
