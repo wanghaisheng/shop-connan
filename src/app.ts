@@ -522,16 +522,17 @@ app.get("/top500", async (req: Request, res: Response) => {
     let sitemapurl=''
     if (done.length > 1) {
       console.log('this shop has scraped urls')
-      url_list = crawlUrls(uniqdomains[i])
     } else {
       const sitemapurl = await get_shopify_defaut_sitemap(uniqdomains[i])
       if (sitemapurl.length == 0) {
         console.log('there is no sitemap url could found')
+        url_list = crawlUrls(uniqdomains[i])
+
       } else {
         // url_list = await parseSitemap(sitemapurl[0])
         console.log('there is  sitemap url  found',sitemapurl)
-        const url_list = await parseSitemap(sitemapurl[0])
-  
+        url_list = await parseSitemap(sitemapurl[0])
+      }
         const log = fs.createWriteStream('sitemaps/' +filename+ '-sitemap-urls.txt', { flags: 'a' });
         if (url_list.length > 1) {
           for (let i = 0; i < url_list.length; i++) {
@@ -539,13 +540,6 @@ app.get("/top500", async (req: Request, res: Response) => {
           }
         }
       }
-
-
-
-  
-  
-
-    }
 
 
   }
