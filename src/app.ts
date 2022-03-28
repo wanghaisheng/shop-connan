@@ -531,12 +531,21 @@ app.get("/top500", async (req: Request, res: Response) => {
     }
 
     const log = fs.createWriteStream('sitemaps/' + filename + '-sitemap-urls.txt', { flags: 'a' });
+    const sitemapurl = await get_shopify_defaut_sitemap(uniqdomains[i])
+    if(sitemapurl.length==0){
+      console.log('there is no sitemap url could found')
+    }else{
+    const url_list = await parseSitemap(sitemapurl[0])
+
+    const log = fs.createWriteStream('sitemaps/' +filename+ '-sitemap-urls.txt', { flags: 'a' });
     if (url_list.length > 1) {
       for (let i = 0; i < url_list.length; i++) {
         log.write(url_list[i] + '\n')
       }
     }
 }
+
+  }
   // compress 
   // zipper.sync.zip('./sitemaps').compress().save('./sitemaps-500.zip')
   // upload
@@ -558,7 +567,6 @@ app.get("/merchantgenius", async (req: Request, res: Response) => {
         // const url_list = await get_shopify_defaut_sitemap(uniqdomains[i])
         const sitemapurl = await get_shopify_defaut_sitemap(uniqdomains[i])
         const url_list = await parseSitemap(sitemapurl[0])
-
         const log = fs.createWriteStream('sitemaps/' + uniqdomains[i] + '-sitemap-urls.txt', { flags: 'a' });
         if (url_list.length > 1) {
           for (let i = 0; i < url_list.length; i++) {
