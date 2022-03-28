@@ -164,10 +164,10 @@ async function get_shopify_defaut_sitemap(url: string) {
     if (sitemapcandiates.length > 1) {
       for (let i = 0; i < 1; i++) {
         const sitemapcandiates_url = sitemapcandiates[i]
-        sleep(500);
-
-        const sitemapcandiates_url_list = await parseSitemap(sitemapcandiates_url)
-        url_list.push.apply(url_list, sitemapcandiates_url_list)
+        // sleep(500);
+        url_list.push(sitemapcandiates_url)
+        // const sitemapcandiates_url_list = await parseSitemap(sitemapcandiates_url)
+        // url_list.push.apply(url_list, sitemapcandiates_url_list)
       }
 
     } else {
@@ -177,7 +177,7 @@ async function get_shopify_defaut_sitemap(url: string) {
 
 
   } else {
-    url_list.push.apply(url_list, default_sitemap_url_list)
+    url_list.push(default_sitemap_url)
 
 
   }
@@ -506,7 +506,9 @@ app.get("/top500", async (req: Request, res: Response) => {
       console.log('this shop has scraped urls')
 
     }else{
-    const url_list = await get_shopify_defaut_sitemap(uniqdomains[i])
+    const sitemapurl = await get_shopify_defaut_sitemap(uniqdomains[i])
+    const url_list = await parseSitemap(sitemapurl[0])
+
     const log = fs.createWriteStream('sitemaps/' +filename+ '-sitemap-urls.txt', { flags: 'a' });
     if (url_list.length > 1) {
       for (let i = 0; i < url_list.length; i++) {
@@ -533,7 +535,10 @@ app.get("/merchantgenius", async (req: Request, res: Response) => {
       // const catohistory = fs.readFileSync('shopify-merchantgenius.txt').toString().replace(/\r\n/g, '\n').split('\n');
       for (let i = 0; i < uniqdomains.length; i++) {
         await upsertFile('sitemaps/' + uniqdomains[i] + '-sitemap-urls.txt')
-        const url_list = await get_shopify_defaut_sitemap(uniqdomains[i])
+        // const url_list = await get_shopify_defaut_sitemap(uniqdomains[i])
+        const sitemapurl = await get_shopify_defaut_sitemap(uniqdomains[i])
+        const url_list = await parseSitemap(sitemapurl[0])
+    
         const log = fs.createWriteStream('sitemaps/' + uniqdomains[i] + '-sitemap-urls.txt', { flags: 'a' });
         if (url_list.length > 1) {
           for (let i = 0; i < url_list.length; i++) {
