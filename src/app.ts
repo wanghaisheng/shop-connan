@@ -7,6 +7,7 @@ const cors = require("cors");
 const Crawler = require('node-html-crawler');
 const fs = require("fs");
 // const zipper =require("zip-local")
+import got from 'got';
 // const cron = require('node-cron')
 import https from 'https';
 import { GoogleSERP } from 'serp-parser'
@@ -38,8 +39,9 @@ async function searchsitemap(url: string) {
   for (let i = 0; i < parser.serp['organic'].length; i++) {
     let result = parser.serp['organic'][i]['url']
     const rootdomain = rootdomainfromurl(url)
+    console.log('root domain',rootdomain)
     if (result.includes('.xml') || result.includes(rootdomain)) {
-
+      console.log('search sitemap xml',result)
       // fs.writeFileSync("shopify-sitemap-mapping.txt", +',' + result)
       sitemapcandidate.push(result)
     }
@@ -93,10 +95,22 @@ async function diff_sitemapindex_ornot_pl(url: string) {
       // proxy: { server: 'socks5://127.0.0.1:1080' },
     });
   const page = await context.newPage();
-  const res = await page.goto(url)
+  const res = await page.goto(url,{timeout:0}).catch((e: any) => null);
+  let data
+  if(res==null){
+    await got(url).then((response: { body: any; }) => {
+      data=response.body
+    }).catch((err: any) => {
+      console.log(err);
+    });
+  }else{
+   data= await res.body()
+  }
+  // console.log(data)
+  const $ = cheerio.load(data);
+
 
   // console.log(await res.body())
-  const $ = cheerio.load(await res.body());
   // 
   var list = []
   console.log('=============',)
@@ -139,6 +153,7 @@ async function parseSitemap(original_sitemapurl: string) {
     console.log('this url is not a valid sitemap url')
 
   }
+  console.log('this url is  sitemap url',url_list[0])
 
   return url_list
 
@@ -530,7 +545,7 @@ app.get("/top500", async (req: Request, res: Response) => {
 
       } else {
         // url_list = await parseSitemap(sitemapurl[0])
-        console.log('there is  sitemap url  found',sitemapurl)
+        console.log('there is  sitemap url  found',sitemapurl[0])
         url_list = await parseSitemap(sitemapurl[0])
       }
         const log = fs.createWriteStream('sitemaps/' +filename+ '-sitemap-urls.txt', { flags: 'a' });
