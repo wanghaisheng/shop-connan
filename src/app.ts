@@ -39,9 +39,9 @@ async function searchsitemap(url: string) {
   for (let i = 0; i < parser.serp['organic'].length; i++) {
     let result = parser.serp['organic'][i]['url']
     const rootdomain = rootdomainfromurl(url)
-    console.log('root domain',rootdomain)
+    console.log('root domain', rootdomain)
     if (result.includes('.xml') || result.includes(rootdomain)) {
-      console.log('search sitemap xml',result)
+      console.log('search sitemap xml', result)
       // fs.writeFileSync("shopify-sitemap-mapping.txt", +',' + result)
       sitemapcandidate.push(result)
     }
@@ -95,37 +95,43 @@ async function diff_sitemapindex_ornot_pl(url: string) {
       // proxy: { server: 'socks5://127.0.0.1:1080' },
     });
   const page = await context.newPage();
-  const res = await page.goto(url,{timeout:0}).catch((e: any) => null);
+  const res = await page.goto(url, { timeout: 0 }).catch((e: any) => null);
   let data
-  if(res==null){
+  if (res == null) {
     await got(url).then((response: { body: any; }) => {
-      data=response.body
+      data = response.body
     }).catch((err: any) => {
       console.log(err);
     });
-  }else{
-   data= await res.body()
+  } else {
+    data = await res.body()
   }
-  // console.log(data)
-  const $ = cheerio.load(data);
+  if (data == null) {
+    return [[], []]
+  } else {
+    // console.log(data)
+    const $ = cheerio.load(data);
 
 
-  // console.log(await res.body())
-  // 
-  var list = []
-  console.log('=============',)
-  let subsitemaps = $('sitemap').find('loc')
-    .toArray()
-    .map((element: any) => $(element).text())
+    // console.log(await res.body())
+    // 
+    var list = []
+    console.log('=============',)
+    let subsitemaps = $('sitemap').find('loc')
+      .toArray()
+      .map((element: any) => $(element).text())
 
-  let urlset = $('url loc').text().split('\n').map((el: string) => el.trim()).filter((a: any) => a)
-  urlset = $('url').find('loc')
-    .toArray()
-    .map((element: any) => $(element).text())
-  console.log('sitemapindex/sitemap', url, subsitemaps.length)
-  console.log('urlset/url', url, urlset.length)
-  await browser.close()
-  return [subsitemaps, urlset]
+    let urlset = $('url loc').text().split('\n').map((el: string) => el.trim()).filter((a: any) => a)
+    urlset = $('url').find('loc')
+      .toArray()
+      .map((element: any) => $(element).text())
+    console.log('sitemapindex/sitemap', url, subsitemaps.length)
+    console.log('urlset/url', url, urlset.length)
+    await browser.close()
+    return [subsitemaps, urlset]
+
+
+  }
 
 }
 async function parseSitemap(original_sitemapurl: string) {
@@ -153,7 +159,7 @@ async function parseSitemap(original_sitemapurl: string) {
     console.log('this url is not a valid sitemap url')
 
   }
-  console.log('this url is  sitemap url',url_list[0])
+  console.log('this url is  sitemap url', url_list[0])
 
   return url_list
 
@@ -174,23 +180,24 @@ async function get_shopify_defaut_sitemap(url: string) {
   console.log('domain-', url, '--sitemapurl', default_sitemap_url)
   const default_sitemap_url_list = await parseSitemap(default_sitemap_url)
   if (default_sitemap_url_list.length == 0) {
-    const sitemapcandiates = await searchsitemap(url)
-    console.log('try search sitemap url',sitemapcandiates[0])
+    console.log('default sitemap got no url', default_sitemap_url)
+    // const sitemapcandiates = await searchsitemap(url)
+    // console.log('try search sitemap url',sitemapcandiates[0])
 
-    const sitemapcandiates_url_list: Array<string> = []
-    if (sitemapcandiates.length > 1) {
-      for (let i = 0; i < 1; i++) {
-        const sitemapcandiates_url = sitemapcandiates[i]
-        // sleep(500);
-        url_list.push(sitemapcandiates_url)
-        // const sitemapcandiates_url_list = await parseSitemap(sitemapcandiates_url)
-        // url_list.push.apply(url_list, sitemapcandiates_url_list)
-      }
+    // const sitemapcandiates_url_list: Array<string> = []
+    // if (sitemapcandiates.length > 1) {
+    //   for (let i = 0; i < 1; i++) {
+    //     const sitemapcandiates_url = sitemapcandiates[i]
+    //     // sleep(500);
+    //     url_list.push(sitemapcandiates_url)
+    //     // const sitemapcandiates_url_list = await parseSitemap(sitemapcandiates_url)
+    //     // url_list.push.apply(url_list, sitemapcandiates_url_list)
+    //   }
 
-    } else {
+    // } else {
 
-      console.log('there is no candidacted sitemap in serp result')
-    }
+    //   console.log('there is no candidacted sitemap in serp result')
+    // }
 
 
   } else {
@@ -375,8 +382,8 @@ async function leibiexiangqing(cato: Array<string>) {
         for (let i = 0; i < await shopurls.count(); i++) {
           const url = await shopurls.nth(i).getAttribute('href')
           const domain = url.split('/shop/url/').pop()
-          if (history.indexOf(domain)>-1) {
-            console.log('this domain is done',domain)
+          if (history.indexOf(domain) > -1) {
+            console.log('this domain is done', domain)
           } else {
             domains.push(domain)
             history.push(domain)
@@ -534,7 +541,7 @@ app.get("/top500", async (req: Request, res: Response) => {
     }
     console.log('sitemaps file is', filename)
     const done = await upsertFile('sitemaps/' + filename + '-sitemap-urls.txt')
-    let sitemapurl=''
+    let sitemapurl = ''
     if (done.length > 1) {
       console.log('this shop has scraped urls')
     } else {
@@ -545,16 +552,16 @@ app.get("/top500", async (req: Request, res: Response) => {
 
       } else {
         // url_list = await parseSitemap(sitemapurl[0])
-        console.log('there is  sitemap url  found',sitemapurl[0])
+        console.log('there is  sitemap url  found', sitemapurl[0])
         url_list = await parseSitemap(sitemapurl[0])
       }
-        const log = fs.createWriteStream('sitemaps/' +filename+ '-sitemap-urls.txt', { flags: 'a' });
-        if (url_list.length > 1) {
-          for (let i = 0; i < url_list.length; i++) {
-            log.write(url_list[i] + '\n')
-          }
+      const log = fs.createWriteStream('sitemaps/' + filename + '-sitemap-urls.txt', { flags: 'a' });
+      if (url_list.length > 1) {
+        for (let i = 0; i < url_list.length; i++) {
+          log.write(url_list[i] + '\n')
         }
       }
+    }
 
 
   }
