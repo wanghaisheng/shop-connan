@@ -436,7 +436,12 @@ function savedomains(uniqdomains: Array<string>, filename: string) {
 }
 
 
-async function top500() {
+app.get("/upwork", async (req: Request, res: Response) => {
+  await upwork()
+})
+
+
+async function upwork() {
   const browser = await webkit.launch();
 
   const context = await browser.newContext(
@@ -445,257 +450,338 @@ async function top500() {
       ignoreHTTPSErrors: true,
       // proxy: { server: 'socks5://127.0.0.1:1080' },
     });
-  await upsertFile('./shopify-top-500-afership.txt')
-  const rawjson = await upsertFile('./page-data.json')
-  if (rawjson.length == 0) {
-    const options = {
-      hostname: 'https://websites.am-static.com',
-      path: '/www/v3/aftership/page-data/store-list/top-500-shopify-stores/page-data.json',
-      // path: '/merchantgenius',
-      method: 'GET'
-    }
-    http.get(options, function (error: any, response: { statusCode: number; }, body: any) {
-      if (!error && response.statusCode == 200) {
-        const log = fs.createWriteStream('./page-data.json', { flags: 'w' });
-        log.write(body)
-        log.end()
+  await upsertFile('./upwork-tiktok.txt')
+  await upsertFile('./upwork-youtube.txt')
+  await upsertFile('./upwork-nft.txt')
+  const p_page = await context.newPage();
+  for (let item of ['tiktok', 'youtube', 'nft']) {
+    const url = "https://www.upwork.com/search/jobs/url?q=" + item + "&per_page=50&sort=recency"
+
+    await p_page.goto(url)
+    const totalcount=await p_page.locator('div.pt-20:nth-child(3) > div:nth-child(1) > span:nth-child(1) > strong:nth-child(1)').textContent()
+    const pages =Math.round(totalcount/50) //  5            5            6
+    console.log('total count in page',totalcount,"===",item)
+
+      for (let p = 0; p < pages; p++) {
+
+        const pageurl = "https://www.upwork.com/search/jobs/url?q=" + item + "&per_page=50&sort=recency"+'&page='+p
+        await p_page.goto(pageurl)
+
+        const joburls = p_page.locator('a[href^="/job/"]')
+    
+        console.log('we detected ', await joburls.count())
+        for (let i = 0; i < await joburls.count(); i++) {
+
+        const jobtitle = await joburls.nth(i).textContent()
+        const joburl='https://www.upwork.com'+ joburls.nth(i).getAttribute('href')
+        await p_page.goto(joburl)
+        const jobdes= await p_page.locator('.job-description > div:nth-child(1)').textContent()
+        const jobskill =await p_page.locator('section.up-card-section:nth-child(5) > div:nth-child(2)').textContent()
+        const log = fs.createWriteStream('./upwork-'+item+'.txt', { flags: 'a' });
+
+        // on new log entry ->
+        log.write(i+','+jobtitle+','+joburl+','+jobdes+','+jobskill + "\n");
+        // you can skip closing the stream if you want it to be opened while
+        // a program runs, then file handle will be closed
+        log.end();
+
+        
+
       }
-    })
 
+    }}
   }
-  const content = JSON.parse(await fs.promises.readFile('./page-data.json'))
-  console.log(content)
-  const json = content['result']['pageContext']['story']['content']['storeList']
+    async function top500() {
+      const browser = await webkit.launch();
 
-  for (let i = 0; i < json.length; i++) {
-    let item = json[i]
-    console.log(item)
-    const content = [item['url'], item['country'], item['company_name'], item['monthly_traffic'], item['alexa_url_info']['rank']]
-
-    // "company_name": "BBC Shop US",
-    // "country": "USA",
-    // "country_name": "United States of America",
-    // "domain": "shop.bbc.com",
-    // "ecommerce_categories": [
-    //   {
-    //     "title": "entertainment",
-    //     "path": "Entertainment"
-    //   }
-    // ],
-    // "ecommerce_platform": "shopify",
-    // "logo": "https://cella.s3.amazonaws.com/b/b/c/shop.bbc.com/logo/20200722_030712_shop.bbc.com.png",
-    // "monthly_traffic": "416,700,000",
-    // "url": "http://shop.bbc.com",
-    // "alexa_url_info": {
-    //   "rank": "83"
-    // }
-    const log = fs.createWriteStream('./shopify-top-500-afership.txt', { flags: 'a' });
-
-    // on new log entry ->
-    log.write(content + "\n");
-    // you can skip closing the stream if you want it to be opened while
-    // a program runs, then file handle will be closed
-    log.end();
-
-
-  }
-
-
-}
-function crawlUrls(url: string) {
-
-
-  let url_list: Array<string> = []
-  const domain = rootdomainfromurl(url);
-  const crawler = new Crawler(domain);
-
-  crawler.crawl();
-  crawler.on('data', (data: { result: { statusCode: any; }; url: any; }) => url_list.push(data.url));
-  crawler.on('error', (error: any) => console.error(error));
-  crawler.on('end', () => console.log(`Finish! All urls on domain ${domain} a crawled!`));
-  return url_list
-
-}
-app.get("/scrapetop500", async (req: Request, res: Response) => {
-  await top500()
-})
-app.get("/top500", async (req: Request, res: Response) => {
-  let uniqdomains: Array<string> = await upsertFile("shopify-top-500-afership.txt")
-  uniqdomains = uniqdomains.map((item) => item.split(',')[0]).filter(a => a)
-  uniqdomains = Array.from(new Set(uniqdomains))
-  console.log(uniqdomains)
-  let url_list: Array<string> = []
-
-  console.log('qu chong hou domains', uniqdomains.length)
-  for (let i = 0; i < uniqdomains.length; i++) {
-    console.log('starting to do ==========', uniqdomains[i])
-    let filename = ''
-
-    if (uniqdomains[i].includes('https://')) {
-      filename = uniqdomains[i].replace('https://', '')
-    } else if (uniqdomains[i].includes('http://')) {
-      filename = uniqdomains[i].replace('http://', '')
-      console.log('there is http', filename)
-    } else {
-      filename = uniqdomains[i]
-    }
-    console.log('sitemaps file is', filename)
-    const done = await upsertFile('sitemaps/' + filename + '-sitemap-urls.txt')
-    let sitemapurl = ''
-    if (done.length > 1) {
-      console.log('this shop has scraped urls')
-    } else {
-      const sitemapurl = await get_shopify_defaut_sitemap(uniqdomains[i])
-      if (sitemapurl.length == 0) {
-        console.log('there is no sitemap url could found')
-        url_list = crawlUrls(uniqdomains[i])
-
-      } else {
-        // url_list = await parseSitemap(sitemapurl[0])
-        console.log('there is  sitemap url  found', sitemapurl[0])
-        url_list = await parseSitemap(sitemapurl[0])
-      }
-      const log = fs.createWriteStream('sitemaps/' + filename + '-sitemap-urls.txt', { flags: 'a' });
-      if (url_list.length > 1) {
-        for (let i = 0; i < url_list.length; i++) {
-          log.write(url_list[i] + '\n')
+      const context = await browser.newContext(
+        {
+          headless: false,
+          ignoreHTTPSErrors: true,
+          // proxy: { server: 'socks5://127.0.0.1:1080' },
+        });
+      await upsertFile('./shopify-top-500-afership.txt')
+      const rawjson = await upsertFile('./page-data.json')
+      if (rawjson.length == 0) {
+        const options = {
+          hostname: 'https://websites.am-static.com',
+          path: '/www/v3/aftership/page-data/store-list/top-500-shopify-stores/page-data.json',
+          // path: '/merchantgenius',
+          method: 'GET'
         }
+        http.get(options, function (error: any, response: { statusCode: number; }, body: any) {
+          if (!error && response.statusCode == 200) {
+            const log = fs.createWriteStream('./page-data.json', { flags: 'w' });
+            log.write(body)
+            log.end()
+          }
+        })
+
       }
+      const content = JSON.parse(await fs.promises.readFile('./page-data.json'))
+      console.log(content)
+      const json = content['result']['pageContext']['story']['content']['storeList']
+
+      for (let i = 0; i < json.length; i++) {
+        let item = json[i]
+        console.log(item)
+        const content = [item['url'], item['country'], item['company_name'], item['monthly_traffic'], item['alexa_url_info']['rank']]
+
+        // "company_name": "BBC Shop US",
+        // "country": "USA",
+        // "country_name": "United States of America",
+        // "domain": "shop.bbc.com",
+        // "ecommerce_categories": [
+        //   {
+        //     "title": "entertainment",
+        //     "path": "Entertainment"
+        //   }
+        // ],
+        // "ecommerce_platform": "shopify",
+        // "logo": "https://cella.s3.amazonaws.com/b/b/c/shop.bbc.com/logo/20200722_030712_shop.bbc.com.png",
+        // "monthly_traffic": "416,700,000",
+        // "url": "http://shop.bbc.com",
+        // "alexa_url_info": {
+        //   "rank": "83"
+        // }
+        const log = fs.createWriteStream('./shopify-top-500-afership.txt', { flags: 'a' });
+
+        // on new log entry ->
+        log.write(content + "\n");
+        // you can skip closing the stream if you want it to be opened while
+        // a program runs, then file handle will be closed
+        log.end();
+
+
+      }
+
+
     }
+    function crawlUrls(url: string) {
 
 
-  }
-  // compress 
-  // zipper.sync.zip('./sitemaps').compress().save('./sitemaps-500.zip')
-  // upload
-})
+      let url_list: Array<string> = []
+      const domain = rootdomainfromurl(url);
+      const crawler = new Crawler(domain);
 
+      crawler.crawl();
+      crawler.on('data', (data: { result: { statusCode: any; }; url: any; }) => url_list.push(data.url));
+      crawler.on('error', (error: any) => console.error(error));
+      crawler.on('end', () => console.log(`Finish! All urls on domain ${domain} a crawled!`));
+      return url_list
 
+    }
+    app.get("/scrapetop500", async (req: Request, res: Response) => {
+      await top500()
+    })
+    app.get("/top500", async (req: Request, res: Response) => {
+      let uniqdomains: Array<string> = await upsertFile("shopify-top-500-afership.txt")
+      uniqdomains = uniqdomains.map((item) => item.split(',')[0]).filter(a => a)
+      uniqdomains = Array.from(new Set(uniqdomains))
+      console.log(uniqdomains)
+      let url_list: Array<string> = []
 
-app.get("/merchantgenius", async (req: Request, res: Response) => {
-
-
-  try {
-
-    const diff_cato = await homepage('')
-    if (diff_cato.length > 1) {
-      const uniqdomains = await leibiexiangqing(diff_cato)
-      // const catohistory = fs.readFileSync('shopify-merchantgenius.txt').toString().replace(/\r\n/g, '\n').split('\n');
+      console.log('qu chong hou domains', uniqdomains.length)
       for (let i = 0; i < uniqdomains.length; i++) {
-        await upsertFile('sitemaps/' + uniqdomains[i] + '-sitemap-urls.txt')
-        // const url_list = await get_shopify_defaut_sitemap(uniqdomains[i])
-        const sitemapurl = await get_shopify_defaut_sitemap(uniqdomains[i])
-        const url_list = await parseSitemap(sitemapurl[0])
-        const log = fs.createWriteStream('sitemaps/' + uniqdomains[i] + '-sitemap-urls.txt', { flags: 'a' });
-        if (url_list.length > 1) {
-          for (let i = 0; i < url_list.length; i++) {
-            log.write(url_list[i] + '\n')
+        console.log('starting to do ==========', uniqdomains[i])
+        let filename = ''
+
+        if (uniqdomains[i].includes('https://')) {
+          filename = uniqdomains[i].replace('https://', '')
+        } else if (uniqdomains[i].includes('http://')) {
+          filename = uniqdomains[i].replace('http://', '')
+          console.log('there is http', filename)
+        } else {
+          filename = uniqdomains[i]
+        }
+        console.log('sitemaps file is', filename)
+        const done = await upsertFile('sitemaps/' + filename + '-sitemap-urls.txt')
+        let sitemapurl = ''
+        if (done.length > 1) {
+          console.log('this shop has scraped urls')
+        } else {
+          const sitemapurl = await get_shopify_defaut_sitemap(uniqdomains[i])
+          if (sitemapurl.length == 0) {
+            console.log('there is no sitemap url could found')
+            url_list = crawlUrls(uniqdomains[i])
+
+          } else {
+            // url_list = await parseSitemap(sitemapurl[0])
+            console.log('there is  sitemap url  found', sitemapurl[0])
+            url_list = await parseSitemap(sitemapurl[0])
+          }
+          const log = fs.createWriteStream('sitemaps/' + filename + '-sitemap-urls.txt', { flags: 'a' });
+          if (url_list.length > 1) {
+            for (let i = 0; i < url_list.length; i++) {
+              log.write(url_list[i] + '\n')
+            }
           }
         }
+
+
+      }
+      // compress 
+      // zipper.sync.zip('./sitemaps').compress().save('./sitemaps-500.zip')
+      // upload
+    })
+
+
+    app.get("/merchantgenius", async (req: Request, res: Response) => {
+
+
+      try {
+
+        const diff_cato = await homepage('')
+        if (diff_cato.length > 1) {
+          const uniqdomains = await leibiexiangqing(diff_cato)
+          // const catohistory = fs.readFileSync('shopify-merchantgenius.txt').toString().replace(/\r\n/g, '\n').split('\n');
+          for (let i = 0; i < uniqdomains.length; i++) {
+            await upsertFile('sitemaps/' + uniqdomains[i] + '-sitemap-urls.txt')
+            // const url_list = await get_shopify_defaut_sitemap(uniqdomains[i])
+            const sitemapurl = await get_shopify_defaut_sitemap(uniqdomains[i])
+            const url_list = await parseSitemap(sitemapurl[0])
+            const log = fs.createWriteStream('sitemaps/' + uniqdomains[i] + '-sitemap-urls.txt', { flags: 'a' });
+            if (url_list.length > 1) {
+              for (let i = 0; i < url_list.length; i++) {
+                log.write(url_list[i] + '\n')
+              }
+            }
+          }
+
+        }
+      } catch (error) {
+        console.log('error===', error)
+
+
       }
 
-    }
-  } catch (error) {
-    console.log('error===', error)
-
-
-  }
-
-  //   {
-  //     "keyword: "google",
-  //     "totalResults": 15860000000,
-  //     "timeTaken": 0.61,
-  //     "currentPage": 1,
-  //     "pagination": [
-  //       { page: 1,
-  //         path: "" },
-  //       { page: 2,
-  //         path: "/search?q=google&safe=off&gl=US&pws=0&nfpr=1&ei=N1QvXKbhOLCC5wLlvLa4Dg&start=10&sa=N&ved=0ahUKEwjm2Mn2ktTfAhUwwVkKHWWeDecQ8tMDCOwB" },
-  //       ...
-  //     ],
-  //     "videos": [
-  //       { title: "The Matrix YouTube Movies Science Fiction - 1999 $ From $3.99",
-  //         sitelink: "https://www.youtube.com/watch?v=3DfOTKGvtOM",
-  //         date: 2018-10-28T23:00:00.000Z,
-  //         source: "YouTube",
-  //         channel: "Warner Movies On Demand",
-  //         videoDuration: "2:23" },
-  //       ...
-  //     ],
-  //     "thumbnailGroups": [
-  //         { "heading": "Organization software",
-  //           "thumbnails:": [ {
-  //             "sitelink": "/search?safe=off&gl=US&pws=0&nfpr=1&q=Microsoft&stick=H4sIAAAAAAAAAONgFuLUz9U3MDFNNk9S4gAzi8tMtGSyk630k0qLM_NSi4v1M4uLS1OLrIozU1LLEyuLVzGKp1n5F6Un5mVWJZZk5ucpFOenlZQnFqUCAMQud6xPAAAA&sa=X&ved=2ahUKEwjm2Mn2ktTfAhUwwVkKHWWeDecQxA0wHXoECAQQBQ",
-  //             "title": "Microsoft Corporation"
-  //           },
-  //           ...
-  //         ]
-  //       },
-  //       ...
-  //     ],
-  //     "organic": [
-  //       {
-  //         "domain": "www.google.com",
-  //         "position": 1,
-  //         "title": "Google",
-  //         "url": "https://www.google.com/",
-  //         "cachedUrl": "https://webcache.googleusercontent.com/search?q=cache:y14FcUQOGl4J:https://www.google.com/+&cd=1&hl=en&ct=clnk&gl=us",
-  //         "similarUrl": "/search?safe=off&gl=US&pws=0&nfpr=1&q=related:https://www.google.com/+google&tbo=1&sa=X&ved=2ahUKEwjm2Mn2ktTfAhUwwVkKHWWeDecQHzAAegQIARAG",
-  //         "linkType": "HOME",
-  //         "sitelinks": [
-  //           { "title": "Google Docs",
-  //             "snippet": "Google Docs brings your documents to life with smart ...",
-  //             "type": "card" },
-  //           { "title": "Google News",
-  //             "snippet": "Comprehensive up-to-date news coverage, aggregated from ...",
-  //             "type": "card" },
-  //           ...
-  //         ],
-  //         "snippet": "Settings Your data in Search Help Send feedback. AllImages. Account · Assistant · Search · Maps · YouTube · Play · News · Gmail · Contacts · Drive · Calendar."
-  //       },
-  //       {
-  //         "domain": "www.google.org",
-  //         "position": 2,
-  //         "title": "Google.org: Home",
-  //         "url": "https://www.google.org/",
-  //         "cachedUrl": "https://webcache.googleusercontent.com/search?q=cache:Nm9ycLj-SKoJ:https://www.google.org/+&cd=24&hl=en&ct=clnk&gl=us",
-  //         "similarUrl": "/search?safe=off&gl=US&pws=0&nfpr=1&q=related:https://www.google.org/+google&tbo=1&sa=X&ved=2ahUKEwjm2Mn2ktTfAhUwwVkKHWWeDecQHzAXegQIDBAF",
-  //         "linkType": "HOME",
-  //         "snippet": "Data-driven, human-focused philanthropy powered by Google. We bring the best of Google to innovative nonprofits that are committed to creating a world that..."
-  //       },
-  //       ...
-  //     ],
-  //     "relatedKeywords": [
-  //       { keyword: google search,
-  //         path: "/search?safe=off&gl=US&pws=0&nfpr=1&q=google+search&sa=X&ved=2ahUKEwjm2Mn2ktTfAhUwwVkKHWWeDecQ1QIoAHoECA0QAQ" },
-  //       { keyword: google account,
-  //         path: "/search?safe=off&gl=US&pws=0&nfpr=1&q=google+account&sa=X&ved=2ahUKEwjm2Mn2ktTfAhUwwVkKHWWeDecQ1QIoAXoECA0QAg" },
-  //       ...
-  //     ]
-  //   }
+      //   {
+      //     "keyword: "google",
+      //     "totalResults": 15860000000,
+      //     "timeTaken": 0.61,
+      //     "currentPage": 1,
+      //     "pagination": [
+      //       { page: 1,
+      //         path: "" },
+      //       { page: 2,
+      //         path: "/search?q=google&safe=off&gl=US&pws=0&nfpr=1&ei=N1QvXKbhOLCC5wLlvLa4Dg&start=10&sa=N&ved=0ahUKEwjm2Mn2ktTfAhUwwVkKHWWeDecQ8tMDCOwB" },
+      //       ...
+      //     ],
+      //     "videos": [
+      //       { title: "The Matrix YouTube Movies Science Fiction - 1999 $ From $3.99",
+      //         sitelink: "https://www.youtube.com/watch?v=3DfOTKGvtOM",
+      //         date: 2018-10-28T23:00:00.000Z,
+      //         source: "YouTube",
+      //         channel: "Warner Movies On Demand",
+      //         videoDuration: "2:23" },
+      //       ...
+      //     ],
+      //     "thumbnailGroups": [
+      //         { "heading": "Organization software",
+      //           "thumbnails:": [ {
+      //             "sitelink": "/search?safe=off&gl=US&pws=0&nfpr=1&q=Microsoft&stick=H4sIAAAAAAAAAONgFuLUz9U3MDFNNk9S4gAzi8tMtGSyk630k0qLM_NSi4v1M4uLS1OLrIozU1LLEyuLVzGKp1n5F6Un5mVWJZZk5ucpFOenlZQnFqUCAMQud6xPAAAA&sa=X&ved=2ahUKEwjm2Mn2ktTfAhUwwVkKHWWeDecQxA0wHXoECAQQBQ",
+      //             "title": "Microsoft Corporation"
+      //           },
+      //           ...
+      //         ]
+      //       },
+      //       ...
+      //     ],
+      //     "organic": [
+      //       {
+      //         "domain": "www.google.com",
+      //         "position": 1,
+      //         "title": "Google",
+      //         "url": "https://www.google.com/",
+      //         "cachedUrl": "https://webcache.googleusercontent.com/search?q=cache:y14FcUQOGl4J:https://www.google.com/+&cd=1&hl=en&ct=clnk&gl=us",
+      //         "similarUrl": "/search?safe=off&gl=US&pws=0&nfpr=1&q=related:https://www.google.com/+google&tbo=1&sa=X&ved=2ahUKEwjm2Mn2ktTfAhUwwVkKHWWeDecQHzAAegQIARAG",
+      //         "linkType": "HOME",
+      //         "sitelinks": [
+      //           { "title": "Google Docs",
+      //             "snippet": "Google Docs brings your documents to life with smart ...",
+      //             "type": "card" },
+      //           { "title": "Google News",
+      //             "snippet": "Comprehensive up-to-date news coverage, aggregated from ...",
+      //             "type": "card" },
+      //           ...
+      //         ],
+      //         "snippet": "Settings Your data in Search Help Send feedback. AllImages. Account · Assistant · Search · Maps · YouTube · Play · News · Gmail · Contacts · Drive · Calendar."
+      //       },
+      //       {
+      //         "domain": "www.google.org",
+      //         "position": 2,
+      //         "title": "Google.org: Home",
+      //         "url": "https://www.google.org/",
+      //         "cachedUrl": "https://webcache.googleusercontent.com/search?q=cache:Nm9ycLj-SKoJ:https://www.google.org/+&cd=24&hl=en&ct=clnk&gl=us",
+      //         "similarUrl": "/search?safe=off&gl=US&pws=0&nfpr=1&q=related:https://www.google.org/+google&tbo=1&sa=X&ved=2ahUKEwjm2Mn2ktTfAhUwwVkKHWWeDecQHzAXegQIDBAF",
+      //         "linkType": "HOME",
+      //         "snippet": "Data-driven, human-focused philanthropy powered by Google. We bring the best of Google to innovative nonprofits that are committed to creating a world that..."
+      //       },
+      //       ...
+      //     ],
+      //     "relatedKeywords": [
+      //       { keyword: google search,
+      //         path: "/search?safe=off&gl=US&pws=0&nfpr=1&q=google+search&sa=X&ved=2ahUKEwjm2Mn2ktTfAhUwwVkKHWWeDecQ1QIoAHoECA0QAQ" },
+      //       { keyword: google account,
+      //         path: "/search?safe=off&gl=US&pws=0&nfpr=1&q=google+account&sa=X&ved=2ahUKEwjm2Mn2ktTfAhUwwVkKHWWeDecQ1QIoAXoECA0QAg" },
+      //       ...
+      //     ]
+      //   }
 
 
 
-})
+    })
 
 
-app.listen(8083, () => {
-  console.log("server started");
+    app.listen(8083, () => {
+      console.log("server started");
 
-  // cron.schedule("* * * * *", function () {
-  //   // API call goes here
-  //   console.log("running a task every minute");
-  const options = {
-    hostname: 'localhost',
-    port: 8083,
-    path: '/top500',
-    // path: '/merchantgenius',
-    method: 'GET'
-  }
-  http.get(options, function (error: any, response: { statusCode: number; }, body: any) {
-    if (!error && response.statusCode == 200) {
-      console.log(body) // Print the google web page.
-    }
-  })
-  // })
-})
+      // cron.schedule("* * * * *", function () {
+      //   // API call goes here
+      //   console.log("running a task every minute");
+      const optionstop500 = {
+        hostname: 'localhost',
+        port: 8083,
+        path: '/top500',
+        // path: '/merchantgenius',
+        method: 'GET'
+      }
+      http.get(optionstop500, function (error: any, response: { statusCode: number; }, body: any) {
+        if (!error && response.statusCode == 200) {
+          console.log(body) // Print the google web page.
+        }
+      })
+
+
+
+      const optionsmerchantgenius = {
+        hostname: 'localhost',
+        port: 8083,
+        // path: '/top500',
+        path: '/merchantgenius',
+        method: 'GET'
+      }
+      http.get(optionsmerchantgenius, function (error: any, response: { statusCode: number; }, body: any) {
+        if (!error && response.statusCode == 200) {
+          console.log(body) // Print the google web page.
+        }
+      })
+
+
+
+      const optionsupwork = {
+        hostname: 'localhost',
+        port: 8083,
+        path: '/upwork',
+        method: 'GET'
+      }
+      http.get(optionsupwork, function (error: any, response: { statusCode: number; }, body: any) {
+        if (!error && response.statusCode == 200) {
+          console.log(body) // Print the google web page.
+        }
+      })      
+
+
+
+      // })
+    })
