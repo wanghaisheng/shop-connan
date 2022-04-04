@@ -346,6 +346,7 @@ async function homepage(url: string) {
     cato.push(filename)
 
   }
+  browser.close()
   return diff_cato
 
 
@@ -424,6 +425,8 @@ async function leibiexiangqing(cato: Array<string>) {
       console.log('this cato has been scraped', cato[i])
     }
   }
+  browser.close()
+
   return Array.from(new Set(domains));
 }
 function savedomains(uniqdomains: Array<string>, filename: string) {
