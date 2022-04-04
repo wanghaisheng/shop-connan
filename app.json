@@ -5,7 +5,6 @@
         "website": "https://github.com/wanghaisheng/shop-connan",
         "repository": "https://github.com/wanghaisheng/shop-connan",
         "stack": "container",
-
         "buildpacks": [
             {
                 "url": "https://github.com/zidizei/heroku-buildpack-tsc.git"
