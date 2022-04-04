@@ -449,7 +449,7 @@ async function upwork() {
     {
       headless: false,
       ignoreHTTPSErrors: true,
-      proxy: { server: 'socks5://127.0.0.1:1080' },
+      // proxy: { server: 'socks5://127.0.0.1:1080' },
     });
   await upsertFile('./upwork/upwork-tiktok.json')
   await upsertFile('./upwork/upwork-youtube.json')
