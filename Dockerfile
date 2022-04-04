@@ -7,4 +7,4 @@ ENV NODE_ENV=${NODE_ENV}
 COPY . /app
 WORKDIR /app
 RUN npm install 
-CMD [ "npm", “run”, "start:prod" ]
+CMD [ "npm", "run", "start:prod" ]
