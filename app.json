@@ -1,5 +1,5 @@
 {
-        "name": "heroku",
+        "name": "merchantgenius-scrape",
         "description": "heroku yes",
         "keywords": ["heroku yes"],
         "env": {
