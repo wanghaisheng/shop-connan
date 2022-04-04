@@ -11,8 +11,9 @@ app.get("/upwork", async (req: Request, res: Response) => {
   await upwork()
 })
 
+const port = process.env.PORT || 3000;
 
-app.listen(8081, () => {
+app.listen(port, () => {
         console.log("server started");
   
         // cron.schedule("* * * * *", function () {
@@ -50,7 +51,7 @@ app.listen(8081, () => {
   
         const optionsupwork = {
           hostname: 'localhost',
-          port: 8081,
+          port: port,
           path: '/upwork',
           method: 'GET'
         }

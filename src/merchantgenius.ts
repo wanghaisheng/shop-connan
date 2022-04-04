@@ -41,8 +41,8 @@ app.get("/merchantgenius", async (req: Request, res: Response) => {
   }
 })
 
-
-app.listen(8081, () => {
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
         console.log("server started");
   
         // cron.schedule("* * * * *", function () {
@@ -50,7 +50,7 @@ app.listen(8081, () => {
         //   console.log("running a task every minute");
         const optionstop500 = {
           hostname: 'localhost',
-          port: 8081,
+          port: port,
           // path: '/top500',
           path: '/merchantgenius',
           method: 'GET'
