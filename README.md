@@ -4,6 +4,13 @@
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/wanghaisheng/shop-connan/tree/main)
 
 ```
+https://github.com/Neeraj2212/web-gallery
+
+https://github.com/guerrerocarlos/db-google-spreadsheets
+
+
+https://github.com/franciscop/drive-db
+
 cnpm i sheetquery
 https://github.com/vlucas/sheetquery
 

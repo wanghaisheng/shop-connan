@@ -373,7 +373,7 @@ async function leibiexiangqing(cato: Array<string>) {
     console.log(filename, ' contains ', history.length)
     if (history.length == 1) {
       console.log('dig url published on ', url)
-
+      try{
       await p_page.goto(url,{timeout:0})
       // await p_page.goto(url)
 
@@ -410,6 +410,11 @@ async function leibiexiangqing(cato: Array<string>) {
         console.log('============finish saving==========', filename)
 
       }
+    } catch(e) {
+      console.log('couldnot access this page ' +e);
+      browser.close()
+
+    }
     }
     else {
 
