@@ -313,7 +313,7 @@ async function homepage(url: string) {
   const page = await context.newPage();
 
 
-  await page.goto('https://www.merchantgenius.io')
+  await page.goto('https://www.merchantgenius.io',{timeout:0})
   // console.log(await page.content())
   const yuefen = page.locator('xpath=//html/body/main/div/div[2]/a')
   await upsertFile('./shopify-catalog.txt')
@@ -374,7 +374,7 @@ async function leibiexiangqing(cato: Array<string>) {
     if (history.length == 1) {
       console.log('dig url published on ', url)
 
-      await p_page.goto(url)
+      await p_page.goto(url,{timeout:0})
       // await p_page.goto(url)
 
       // console.log(await p_page.content())

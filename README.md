@@ -3,7 +3,7 @@
 
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/wanghaisheng/shop-connan/tree/main)
 
-
+```
 cnpm i sheetquery
 https://github.com/vlucas/sheetquery
 
@@ -21,6 +21,7 @@ sheetQuery()
   .updateRows((row) => {
     row.Category = 'Coffee Shops';
   });
+```
 
 
 
