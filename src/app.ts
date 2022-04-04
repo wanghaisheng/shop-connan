@@ -394,7 +394,7 @@ async function leibiexiangqing(cato: Array<string>) {
 // font-size: 85%;" href="/shop/date/2022-04-03">See all from April 3, 2022 →</a>
 
 // <a href="/shop/date/2022-04-02"><button style="cursor: pointer;" class="dateLinks">04/02</button></a>
-        for (let i = 0; i < await shopurls.count(); i++) {
+        for (let i = 1; i < await shopurls.count(); i++) {
           const url = await shopurls.nth(i).getAttribute('href')
           const domain = url.split('/shop/url/').pop()
           if (history.indexOf(domain) > -1) {
