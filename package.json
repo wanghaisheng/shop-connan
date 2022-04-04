@@ -4,12 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "tsc -p . && node dist/merchantgenius.js",
+    "build": "tsc -p .",
+    "start": "node dist/merchantgenius.js",
     "upwork": "tsc -p . && node dist/upwork.js",
     "top500": "tsc -p . && node dist/top500.js",
     "merchant": "tsc -p . && node dist/merchantgenius.js",
-    "dev": "nodemon src/app.ts",
-    "build": "tsc -p ."
+    "dev": "nodemon src/app.ts"
   },
   "keywords": [],
   "author": "",
