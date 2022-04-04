@@ -3,9 +3,13 @@ const http = require('http');
 const express = require('express');
 import { Request, Response, Application } from 'express';
 const cors = require("cors");
-
+import {upwork} from "./app"
 const app: Application = express();
 app.use(cors());
+
+app.get("/upwork", async (req: Request, res: Response) => {
+  await upwork()
+})
 
 
 app.listen(8081, () => {

@@ -5,9 +5,9 @@
   "main": "index.js",
   "scripts": {
     "start": "node dist/app.js",
-    "upwork": "node dist/upwork.js",
-    "top500": "node dist/top500.js",
-    "merchant": "node dist/merchantgenius.js",
+    "upwork": "tsc -p . && node dist/upwork.js",
+    "top500": "tsc -p . && node dist/top500.js",
+    "merchant": "tsc -p . && node dist/merchantgenius.js",
     "dev": "nodemon src/app.ts",
     "build": "tsc -p ."
   },

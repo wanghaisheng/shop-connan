@@ -6,6 +6,7 @@ import { Request, Response, Application } from 'express';
 const cors = require("cors");
 const Crawler = require('node-html-crawler');
 const fs = require("fs");
+const { DomHandler } = require("domhandler");
 // const zipper =require("zip-local")
 import got from 'got';
 // const cron = require('node-cron')
@@ -448,48 +449,77 @@ async function upwork() {
     {
       headless: false,
       ignoreHTTPSErrors: true,
-      // proxy: { server: 'socks5://127.0.0.1:1080' },
+      proxy: { server: 'socks5://127.0.0.1:1080' },
     });
-  await upsertFile('./upwork-tiktok.txt')
-  await upsertFile('./upwork-youtube.txt')
-  await upsertFile('./upwork-nft.txt')
+  await upsertFile('./upwork/upwork-tiktok.json')
+  await upsertFile('./upwork/upwork-youtube.json')
+  await upsertFile('./upwork/upwork-nft.json')
   const p_page = await context.newPage();
   for (let item of ['tiktok', 'youtube', 'nft']) {
-    const url = "https://www.upwork.com/search/jobs/url?q=" + item + "&per_page=50&sort=recency"
-
-    await p_page.goto(url)
-    const totalcount=await p_page.locator('div.pt-20:nth-child(3) > div:nth-child(1) > span:nth-child(1) > strong:nth-child(1)').textContent()
+    const url = "https://www.upwork.com/nx/jobs/search/?q=" + item + "&per_page=10&sort=recency"
+    console.log(url)
+    // https://www.upwork.com/nx/jobs/search/?q=tiktok&sort=recency
+    const res = await p_page.goto(url,{timeout:0})
+    // console.log(await res.text())
+    const total=await p_page.locator('div.pt-20:nth-child(3) > div:nth-child(1) > span:nth-child(1) > strong:nth-child(1)').textContent()
+    const totalcount=total.replace(',','')
+    console.log(totalcount)
+    // .text()
     const pages =Math.round(totalcount/50) //  5            5            6
     console.log('total count in page',totalcount,"===",item)
+    const log = fs.createWriteStream('./upwork/upwork-'+item+'.json', { flags: 'a' });
+
+    log.write('[');
 
       for (let p = 0; p < pages; p++) {
 
-        const pageurl = "https://www.upwork.com/search/jobs/url?q=" + item + "&per_page=50&sort=recency"+'&page='+p
-        await p_page.goto(pageurl)
+        const pageurl = "https://www.upwork.com/nx/jobs/search/?q=" + item + "&per_page=50&sort=recency"+'&page='+p
+        await p_page.goto(pageurl,{timeout:0})
 
         const joburls = p_page.locator('a[href^="/job/"]')
-    
-        console.log('we detected ', await joburls.count())
+        console.log('we detected ',pageurl, await joburls.count())
         for (let i = 0; i < await joburls.count(); i++) {
 
-        const jobtitle = await joburls.nth(i).textContent()
-        const joburl='https://www.upwork.com'+ joburls.nth(i).getAttribute('href')
-        await p_page.goto(joburl)
-        const jobdes= await p_page.locator('.job-description > div:nth-child(1)').textContent()
-        const jobskill =await p_page.locator('section.up-card-section:nth-child(5) > div:nth-child(2)').textContent()
-        const log = fs.createWriteStream('./upwork-'+item+'.txt', { flags: 'a' });
+        let jobtitle = await joburls.nth(i).textContent()
+        jobtitle=jobtitle.replace('\r','')
+        jobtitle=jobtitle.replace('\n','').trim()
+        console.log(await joburls.nth(i).getAttribute('href'))
+        const joburl='https://www.upwork.com'+ await joburls.nth(i).getAttribute('href')
+        await p_page.goto(joburl,{timeout:0})
+        let jobdes= await p_page.locator('.job-description > div:nth-child(1)').textContent().trim()
+        let jobskill =await p_page.locator('section.up-card-section:nth-child(5) > div:nth-child(2)').textContent().trim()
+        // console.log(jobdes)
+        // jobdes=jobdes.replace('\n',' ')
+        jobdes=jobdes.replace('\r',' ')
+        jobskill=jobskill.split("\n").join(" ")
 
+        // console.log(jobdes)
+        jobskill=jobskill.replace('\r','\n')
+
+        jobskill=jobskill.split("\n").join(",")
+        // console.log(jobdes)
+        const job={
+          "title":jobtitle,
+          "url":joburl,
+          "des":jobdes,
+          "tag":jobskill
+        }
+        console.log(job)
         // on new log entry ->
-        log.write(i+','+jobtitle+','+joburl+','+jobdes+','+jobskill + "\n");
+        log.write(JSON.stringify(job, null, 2));
         // you can skip closing the stream if you want it to be opened while
         // a program runs, then file handle will be closed
-        log.end();
-
+        log.write(',');
         
 
       }
+    }
+    log.write(']');
 
-    }}
+    log.end();
+
+  }
+
   }
     async function top500() {
       const browser = await webkit.launch();
@@ -655,6 +685,8 @@ async function upwork() {
 
       }
 
+    })
+
       //   {
       //     "keyword: "google",
       //     "totalResults": 15860000000,
@@ -730,58 +762,58 @@ async function upwork() {
 
 
 
-    })
 
+    // app.listen(8081, () => {
+    //   console.log("server started");
 
-    app.listen(8081, () => {
-      console.log("server started");
-
-      // cron.schedule("* * * * *", function () {
-      //   // API call goes here
-      //   console.log("running a task every minute");
-      // const optionstop500 = {
-      //   hostname: 'localhost',
-      //   port: 8083,
-      //   path: '/top500',
-      //   // path: '/merchantgenius',
-      //   method: 'GET'
-      // }
-      // http.get(optionstop500, function (error: any, response: { statusCode: number; }, body: any) {
-      //   if (!error && response.statusCode == 200) {
-      //     console.log(body) // Print the google web page.
-      //   }
-      // })
-
-
-
-      // const optionsmerchantgenius = {
-      //   hostname: 'localhost',
-      //   port: 8083,
-      //   // path: '/top500',
-      //   path: '/merchantgenius',
-      //   method: 'GET'
-      // }
-      // http.get(optionsmerchantgenius, function (error: any, response: { statusCode: number; }, body: any) {
-      //   if (!error && response.statusCode == 200) {
-      //     console.log(body) // Print the google web page.
-      //   }
-      // })
+    //   // cron.schedule("* * * * *", function () {
+    //   //   // API call goes here
+    //   //   console.log("running a task every minute");
+    //   // const optionstop500 = {
+    //   //   hostname: 'localhost',
+    //   //   port: 8083,
+    //   //   path: '/top500',
+    //   //   // path: '/merchantgenius',
+    //   //   method: 'GET'
+    //   // }
+    //   // http.get(optionstop500, function (error: any, response: { statusCode: number; }, body: any) {
+    //   //   if (!error && response.statusCode == 200) {
+    //   //     console.log(body) // Print the google web page.
+    //   //   }
+    //   // })
 
 
 
-      // const optionsupwork = {
-      //   hostname: 'localhost',
-      //   port: 8083,
-      //   path: '/upwork',
-      //   method: 'GET'
-      // }
-      // http.get(optionsupwork, function (error: any, response: { statusCode: number; }, body: any) {
-      //   if (!error && response.statusCode == 200) {
-      //     console.log(body) // Print the google web page.
-      //   }
-      // })      
+    //   // const optionsmerchantgenius = {
+    //   //   hostname: 'localhost',
+    //   //   port: 8083,
+    //   //   // path: '/top500',
+    //   //   path: '/merchantgenius',
+    //   //   method: 'GET'
+    //   // }
+    //   // http.get(optionsmerchantgenius, function (error: any, response: { statusCode: number; }, body: any) {
+    //   //   if (!error && response.statusCode == 200) {
+    //   //     console.log(body) // Print the google web page.
+    //   //   }
+    //   // })
 
 
 
-      // })
-    })
+    //   // const optionsupwork = {
+    //   //   hostname: 'localhost',
+    //   //   port: 8083,
+    //   //   path: '/upwork',
+    //   //   method: 'GET'
+    //   // }
+    //   // http.get(optionsupwork, function (error: any, response: { statusCode: number; }, body: any) {
+    //   //   if (!error && response.statusCode == 200) {
+    //   //     console.log(body) // Print the google web page.
+    //   //   }
+    //   // })      
+
+
+
+    //   // })
+    // })
+    export{upwork,top500,crawlUrls,homepage,leibiexiangqing,upsertFile,get_shopify_defaut_sitemap,parseSitemap}
+    
