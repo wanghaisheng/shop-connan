@@ -9,10 +9,6 @@ app.use(cors());
 
 
 
-app.get("/upwork", async (req: Request, res: Response) => {
-  await upwork()
-})
-
 const port = process.env.PORT || 3000;
 
 app.listen(port, () => {

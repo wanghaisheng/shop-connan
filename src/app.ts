@@ -529,7 +529,7 @@ function savedomains(uniqdomains: Array<string>, filename: string) {
 app.get("/upwork", async (req: Request, res: Response) => {
 
   let obj=getgoogleonesheet('1eXeaUurrqHsS0thkKzyDQdhCMeNYmt9a3pdLa0tPy44','0')
-  obj=JSON.parse(obj)
+  // obj=JSON.parse(obj)
   const items=obj.sheet.data.map((element: any) =>element.keyword)
 
   for (let item of items) {
@@ -550,7 +550,7 @@ function getgoogleonesheet(docid: string,index:string) {
     method: 'GET',
   }
 
-  let data=''
+  let data:{}=new Object()
   const req = https.request(options, res => {
     console.log(`statusCode: ${res.statusCode}`)
   
