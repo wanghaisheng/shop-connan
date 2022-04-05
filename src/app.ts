@@ -13,6 +13,7 @@ import got from 'got';
 // const cron = require('node-cron')
 import https from 'https';
 import { GoogleSERP } from 'serp-parser'
+import Sheet from './models/sheets';
 const { google } = require('googleapis');
 
 const auth = new google.auth.GoogleAuth({
@@ -530,9 +531,10 @@ app.get("/upwork", async (req: Request, res: Response) => {
 
   let obj=getgoogleonesheet('1eXeaUurrqHsS0thkKzyDQdhCMeNYmt9a3pdLa0tPy44','0')
   // obj=JSON.parse(obj)
-  const items=obj.sheet.data.map((element: any) =>element.keyword)
+  const items=obj.data
+  console.log(items,'=======')
 
-  for (let item of items) {
+  for (let item of ['tiktok','youtube']) {
 
   await upwork(item)
 }
@@ -550,7 +552,7 @@ function getgoogleonesheet(docid: string,index:string) {
     method: 'GET',
   }
 
-  let data:{}=new Object()
+  let data=''
   const req = https.request(options, res => {
     console.log(`statusCode: ${res.statusCode}`)
   
@@ -583,7 +585,9 @@ function getgoogleonesheet(docid: string,index:string) {
   })
   
   req.end()  
-  return data
+  const sheet: Sheet = JSON.parse(data);  
+
+  return sheet
 }
 function getgooglesheets(docid: string) {
 
