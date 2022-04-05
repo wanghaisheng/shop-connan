@@ -13,7 +13,7 @@ app.use(cors());
 app.get("/upwork", async (req: Request, res: Response) => {
 
   let obj=getgoogleonesheet('1eXeaUurrqHsS0thkKzyDQdhCMeNYmt9a3pdLa0tPy44','0')
-  console.log(obj)
+  console.log('===',obj)
   obj=JSON.parse(obj)
   const sheet: Sheet = JSON.parse(obj);  
 

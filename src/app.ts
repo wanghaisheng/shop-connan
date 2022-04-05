@@ -547,7 +547,8 @@ function getgoogleonesheet(docid: string,index:string) {
   
     res.on('data', d => {
       data=d
-      // process.stdout.write(d)
+      console.log('---',d)
+      process.stdout.write(d)
 
       // {  
       //   "sheet": {
