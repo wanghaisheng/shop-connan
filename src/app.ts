@@ -527,18 +527,7 @@ function savedomains(uniqdomains: Array<string>, filename: string) {
 }
 
 
-app.get("/upwork", async (req: Request, res: Response) => {
 
-  let obj=getgoogleonesheet('1eXeaUurrqHsS0thkKzyDQdhCMeNYmt9a3pdLa0tPy44','0')
-  // obj=JSON.parse(obj)
-  const items=obj.data
-  console.log(items,'=======')
-
-  for (let item of ['tiktok','youtube']) {
-
-  await upwork(item)
-}
-})
 
 function getgoogleonesheet(docid: string,index:string) {
 
@@ -585,9 +574,8 @@ function getgoogleonesheet(docid: string,index:string) {
   })
   
   req.end()  
-  const sheet: Sheet = JSON.parse(data);  
 
-  return sheet
+  return data
 }
 function getgooglesheets(docid: string) {
 
@@ -931,5 +919,5 @@ function crawlUrls(url: string) {
 
 //   // })
 // })
-export { upwork, top500, crawlUrls, homepage, leibiexiangqing, upsertFile, get_shopify_defaut_sitemap, parseSitemap }
+export { upwork, top500, crawlUrls, homepage,getgoogleonesheet, leibiexiangqing, upsertFile, get_shopify_defaut_sitemap, parseSitemap }
 

@@ -7,10 +7,19 @@ const app_1 = require("./app");
 const app = express();
 app.use(cors());
 app.get("/upwork", async (req, res) => {
-    await (0, app_1.upwork)();
+    let obj = (0, app_1.getgoogleonesheet)('1eXeaUurrqHsS0thkKzyDQdhCMeNYmt9a3pdLa0tPy44', '0');
+    console.log(obj);
+    obj = JSON.parse(obj);
+    const sheet = JSON.parse(obj);
+    const items = sheet.data;
+    console.log(items, '=======');
+    for (let item of ['tiktok', 'youtube']) {
+        await (0, app_1.upwork)(item);
+    }
 });
-app.listen(8081, () => {
-    console.log("server started");
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+    console.log("server started", port);
     // cron.schedule("* * * * *", function () {
     //   // API call goes here
     //   console.log("running a task every minute");
@@ -40,7 +49,7 @@ app.listen(8081, () => {
     // })
     const optionsupwork = {
         hostname: 'localhost',
-        port: 8081,
+        port: port,
         path: '/upwork',
         method: 'GET'
     };

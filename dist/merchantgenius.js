@@ -14,16 +14,16 @@ app.get("/merchantgenius", async (req, res) => {
             const uniqdomains = await (0, app_1.leibiexiangqing)(diff_cato);
             // const catohistory = fs.readFileSync('shopify-merchantgenius.txt').toString().replace(/\r\n/g, '\n').split('\n');
             for (let i = 0; i < uniqdomains.length; i++) {
-                await (0, app_1.upsertFile)('sitemaps/' + uniqdomains[i] + '-sitemap-urls.txt');
+                // await upsertFile('sitemaps/' + uniqdomains[i] + '-sitemap-urls.txt')
                 // const url_list = await get_shopify_defaut_sitemap(uniqdomains[i])
                 const sitemapurl = await (0, app_1.get_shopify_defaut_sitemap)(uniqdomains[i]);
                 const url_list = await (0, app_1.parseSitemap)(sitemapurl[0]);
-                const log = fs.createWriteStream('sitemaps/' + uniqdomains[i] + '-sitemap-urls.txt', { flags: 'a' });
-                if (url_list.length > 1) {
-                    for (let i = 0; i < url_list.length; i++) {
-                        log.write(url_list[i] + '\n');
-                    }
-                }
+                // const log = fs.createWriteStream('sitemaps/' + uniqdomains[i] + '-sitemap-urls.txt', { flags: 'a' });
+                // if (url_list.length > 1) {
+                //   for (let i = 0; i < url_list.length; i++) {
+                //     log.write(url_list[i] + '\n')
+                //   }
+                // }
             }
         }
     }
@@ -31,14 +31,15 @@ app.get("/merchantgenius", async (req, res) => {
         console.log('error===', error);
     }
 });
-app.listen(8081, () => {
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
     console.log("server started");
     // cron.schedule("* * * * *", function () {
     //   // API call goes here
     //   console.log("running a task every minute");
     const optionstop500 = {
         hostname: 'localhost',
-        port: 8081,
+        port: port,
         // path: '/top500',
         path: '/merchantgenius',
         method: 'GET'

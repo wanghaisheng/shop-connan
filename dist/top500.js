@@ -59,14 +59,15 @@ app.get("/top500", async (req, res) => {
     // zipper.sync.zip('./sitemaps').compress().save('./sitemaps-500.zip')
     // upload
 });
-app.listen(8081, () => {
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
     console.log("server started");
     // cron.schedule("* * * * *", function () {
     //   // API call goes here
     //   console.log("running a task every minute");
     const optionstop500 = {
         hostname: 'localhost',
-        port: 8081,
+        port: port,
         path: '/top500',
         // path: '/merchantgenius',
         method: 'GET'
