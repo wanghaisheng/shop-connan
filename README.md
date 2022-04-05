@@ -45,3 +45,29 @@ sheetQuery()
     },
   ]);
 
+
+
+
+https://docs.google.com/spreadsheets/d/1Q87cvlpPBr5Viu9Nxd3PjqBvX_aPCd1_ZOEgdXYGP5w/edit#gid=0
+
+merchantgenius
+
+url,domainscount,updatedate
+https://www.merchantgenius.io/shop/date/2022/04/03,0,2022/04/03
+
+
+
+https://docs.google.com/spreadsheets/d/1FDnff04yl9dN7QOmJooC_5hESHRhFmKUUN1DPvoVrEU/edit#gid=0
+shopify-stores
+id from b64('shop.bbc.com')
+id,domain,rank,sitemapindex,sitemapurl,urls,updatedate
+http://shop.bbc.com,top500,
+http://row.gymshark.com,top500,
+http://www.gymshark.com
+http://www.jbhifi.com.au
+http://www.cettire.com
+http://www.puravidabracelets.com
+http://www.usatuan.com
+http://www.colourpop.com
+
+

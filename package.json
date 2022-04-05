@@ -9,7 +9,7 @@
     "upwork": "tsc -p . && node dist/upwork.js",
     "top500": "tsc -p . && node dist/top500.js",
     "merchant": "tsc -p . && node dist/merchantgenius.js",
-    "dev": "nodemon src/app.ts"
+    "dev": "nodemon src/save.ts"
   },
   "keywords": [],
   "author": "",
@@ -19,11 +19,13 @@
     "concat-stream": "^2.0.0",
     "cors": "^2.8.5",
     "express": "^4.17.1",
+    "googleapis": "^100.0.0",
     "got": "^11.0.0",
     "node-cron": "^3.0.0",
     "node-html-crawler": "^1.2.3",
     "playwright": "^1.20.0",
     "serp-parser": "^1.5.0",
+    "sheetquery": "^1.4.0",
     "sitemap-generator": "^8.5.1",
     "worktop": "^0.7.3",
     "zip-local": "^0.3.5"

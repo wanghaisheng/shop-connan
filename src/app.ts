@@ -1,6 +1,7 @@
 //@ts-check
 const { chromium, webkit, firefox } = require("playwright");
 const http = require('http');
+const { randomUUID } = require('crypto'); // Added in: node v14.17.0
 const express = require('express');
 import { Request, Response, Application } from 'express';
 const cors = require("cors");
@@ -12,9 +13,17 @@ import got from 'got';
 // const cron = require('node-cron')
 import https from 'https';
 import { GoogleSERP } from 'serp-parser'
+const { google } = require('googleapis');
 
+const auth = new google.auth.GoogleAuth({
+  keyFile: 'astral-oven-346308-83edca6d2187.json',
+  scopes: ['https://www.googleapis.com/auth/cloud-platform'],
+});
 const cheerio = require('cheerio');
-
+const sheetheader = {
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDO0zSU4B4WSKYp\nSyG4MgVU0QpiZIb2MWxDSfhDB/9cw9Bafzngv1WAEWA9MTNuRP5m3dvMkhsQsPst\nURvEvpS+3ki5hYm3Ed/eriTZWiOq+ZIDETJ98QYbD7OQpj5AfAfXVuinyEY9xGo7\ncA4HgADkDJx71Izd5c/1gWPmfkJ+FblRjEbg431E3LE5Pc2uE9jxz2l6H4Yxn4pj\nVZwnTTzvrPPJ+DpbIKv1EeoJcObPr4p1ZGhd1GuJagJSKKoNbt15rpAwzdtg/gav\n+sSqUAvugt/SD1UW/dmPFcdufbz5Ohmpnk+yy4Ce7Md1hAwYrPeroL2eALK0uiCY\nsV2P/UH9AgMBAAECggEASpSluuOgZde3t19E3weGnaGt1XI7qq6CxDb5w64wGvLv\ngJqtM8q7Ga3qXtaNnb9aX5y0JG4xPVEcmihL06QHvlYosmGhmfbjnAh++DPFdeN+\nEAYVB44w7fQ5A7m27AjtyOypg8s37REVX66WGIVDjPixOwQX8fJrjbOlYxn3f0BP\nKVVORhjlg1jrrMP+KHJfWuU/GzPkfeQK67nkWtaKf0ywzdRXkzEWz9Rr+tWwx5aW\nPCDQvnUjYvaN3GCr0ycF17GOejYw7dcmhsHW5A7wc5syX3HEmaNABad3h4c8o9MN\nHOQu/9IwYgx8PVpSIDphAI8EJnFUaxwHoCR125C2LwKBgQDsrLZKMAX2WtJAA0GU\nyglkQbN3TjY51JHYa3vcTK46JeuXK8wgh+7SDiTfrYNfOC9PeyXsnruz7CfLx343\nsxB60YlJ2g7+rzZG5Ny9bAQ59MuHu0k/U3LpV64XNjL2aSW7gvdaJaeAS1H6SlMT\nccGTgm8P6XQCsKTnsWgbYZu+FwKBgQDftolfbjde80l+J1wIDY0BncpNFYwsnDkb\nz1xOyAzEmagke8F2AnBnVSObJOACaHpxOt7Wv2gT/55mXjmXUiopaPBW9sGwF1Q8\n43srl9FwglnPjdlUGys0PCe8iVrB2ZkSjoWuzG1+EA3tMmZSYJ8mO2G2knh5vXt9\nX8PGSKIBCwKBgQDOaIJCiUdp5yNeeHiFjv5J1ZLzBd786IqZuIO5SZbZV6DzolrQ\nNDzwLS2zddwQ+ysnojsc9gK1k8vRSRam9R/2PTACnI5fR+eKRKbO/JljAj9PDOOA\nuwKIxtMpozcm9+TUeA/JKvW+SfIg2xlA6ADu6N57fhqTDgODnZEx8Bqn2QKBgHVk\nPdXb6iZjF8+hK8P2CGYuvLeSdQn7uGQFffTBOSH5V6g9YJliUkWHAbYptXrOBGJi\neAjMS/siiaZCD4p+TS2JqYSY265hr4x7+mg3tGmLnUEyuDZQQ22Xm2pt0TgjzRVV\nwISnNVWPax9q8RKNLTZMtsutNJb9fU2e8QadmpVdAoGAV+8CAzO5Ao73e2vLdIRT\nepmMlji8vU4NAfgTHjVoj0njFceL1sWWFnBAfsREl4ufm/r+oq0bwusYzOsPz7hL\nuKqtroZkz6K+rw0X8Nr4R6FGAqaJ5kiHNYwGVKD8wJOuumOsq7RMeKkzTAOof1pg\nK4M8lVE0Q+2XAXsRRSlMJJk=\n-----END PRIVATE KEY-----\n",
+  "client_email": "google-drive-spider@astral-oven-346308.iam.gserviceaccount.com"
+}
 var path = require('path');
 const app: Application = express();
 app.use(cors());
@@ -96,7 +105,7 @@ async function diff_sitemapindex_ornot_pl(url: string) {
       // proxy: { server: 'socks5://127.0.0.1:1080' },
     });
   const page = await context.newPage();
-  
+
   try {
     const res = await page.goto(url, { timeout: 0 }).catch((e: any) => null);
     let data
@@ -114,8 +123,8 @@ async function diff_sitemapindex_ornot_pl(url: string) {
     } else {
       // console.log(data)
       const $ = cheerio.load(data);
-  
-  
+
+
       // console.log(await res.body())
       // 
       var list = []
@@ -123,7 +132,7 @@ async function diff_sitemapindex_ornot_pl(url: string) {
       let subsitemaps = $('sitemap').find('loc')
         .toArray()
         .map((element: any) => $(element).text())
-  
+
       let urlset = $('url loc').text().split('\n').map((el: string) => el.trim()).filter((a: any) => a)
       urlset = $('url').find('loc')
         .toArray()
@@ -132,16 +141,16 @@ async function diff_sitemapindex_ornot_pl(url: string) {
       console.log('urlset/url', url, urlset.length)
       await browser.close()
       return [subsitemaps, urlset]
-  
-  
-    }
-  
-    } catch(e) {
-      console.log('Here I am in catch block ' +e);
-      browser.close()
-      return []
+
 
     }
+
+  } catch (e) {
+    console.log('Here I am in catch block ' + e);
+    browser.close()
+    return []
+
+  }
 
 
 }
@@ -263,7 +272,60 @@ async function checkstoreispassword(url: string) {
 
 }
 
+function download_google_drive(fileId: any) {
 
+  drive.files
+    .get({ fileId, alt: 'media' }, { responseType: 'stream' })
+    .then((res: { data: any; }) => {
+      return res.data
+    }
+    );
+}
+
+async function upsertFile_google_drive(filename: any, filepath: any, mimeType: any) {
+
+  let fileid = ''
+  const res = await drive.files.list({
+    pageSize: 10,
+    fields: 'nextPageToken, files(id, name)',
+  });
+  const files = res.data.files;
+  if (files.length === 0) {
+    console.log('No files found.');
+  } else {
+    console.log('Files:');
+    for (const file of files) {
+      if (file.name == filename) {
+        fileid = file.id
+
+      }
+    }
+
+  }
+  if (fileid == '') {
+
+    const res = await drive.files.create({
+      requestBody: {
+        name: filename,
+        mimeType: mimeType
+      },
+      media: {
+        mimeType: mimeType,
+        body: fs.createReadStream(filepath)
+      },
+      resouce: {
+        name: filename,
+        parents: ['17Qo6cOvChdRdc6YtvZcnO0uAn916D-d7']
+
+      },
+      fields: 'id',
+    });
+  } else {
+    download_google_drive(fileid)
+
+  }
+
+}
 async function upsertFile(name: string) {
   console.log('is file ok?')
   myMkdirSync(path.dirname(name));
@@ -313,7 +375,7 @@ async function homepage(url: string) {
   const page = await context.newPage();
 
 
-  await page.goto('https://www.merchantgenius.io',{timeout:0})
+  await page.goto('https://www.merchantgenius.io', { timeout: 0 })
   // console.log(await page.content())
   const yuefen = page.locator('xpath=//html/body/main/div/div[2]/a')
   await upsertFile('./shopify-catalog.txt')
@@ -374,51 +436,51 @@ async function leibiexiangqing(cato: Array<string>) {
     console.log(filename, ' contains ', history.length)
     if (history.length == 1) {
       console.log('dig url published on ', url)
-      try{
-      await p_page.goto(url,{timeout:0})
-      // await p_page.goto(url)
+      try {
+        await p_page.goto(url, { timeout: 0 })
+        // await p_page.goto(url)
 
-      // console.log(await p_page.content())
-      const shopurls = p_page.locator('.blogImage [href^="/shop/url/"] .dateLinks')
-      console.log('loading exisit domain', history.length)
+        // console.log(await p_page.content())
+        const shopurls = p_page.locator('.blogImage [href^="/shop/url/"] .dateLinks')
+        console.log('loading exisit domain', history.length)
 
-      const tmp = p_page.locator('div.container:nth-child(4)')
-      const t = await tmp.textContent()
-      const url_count = t.split('stores were found.')[0].split('A total of ')[1]
-      console.log('total count in page', url_count, 'we detected ', await shopurls.count())
+        const tmp = p_page.locator('div.container:nth-child(4)')
+        const t = await tmp.textContent()
+        const url_count = t.split('stores were found.')[0].split('A total of ')[1]
+        console.log('total count in page', url_count, 'we detected ', await shopurls.count())
 
-      if (url_count < history.length) {
-        console.log('there is need to   saving')
-      } else {
-// <a style="text-decoration:none; color:grey; text-transform: uppercase;
-// font-size: 85%;" href="/shop/date/2022-04-03">See all from April 3, 2022 →</a>
+        if (url_count < history.length) {
+          console.log('there is need to   saving')
+        } else {
+          // <a style="text-decoration:none; color:grey; text-transform: uppercase;
+          // font-size: 85%;" href="/shop/date/2022-04-03">See all from April 3, 2022 →</a>
 
-// <a href="/shop/date/2022-04-02"><button style="cursor: pointer;" class="dateLinks">04/02</button></a>
-        for (let i = 1; i < await shopurls.count(); i++) {
-          const url = await shopurls.nth(i).getAttribute('href')
-          const domain = url.split('/shop/url/').pop()
-          if (history.indexOf(domain) > -1) {
-            console.log('this domain is done', domain)
-          } else {
-            domains.push(domain)
-            history.push(domain)
-            console.log('bingo', domain)
+          // <a href="/shop/date/2022-04-02"><button style="cursor: pointer;" class="dateLinks">04/02</button></a>
+          for (let i = 1; i < await shopurls.count(); i++) {
+            const url = await shopurls.nth(i).getAttribute('href')
+            const domain = url.split('/shop/url/').pop()
+            if (history.indexOf(domain) > -1) {
+              console.log('this domain is done', domain)
+            } else {
+              domains.push(domain)
+              history.push(domain)
+              console.log('bingo', domain)
 
+            }
           }
-        }
-        const uniqdomains = Array.from(new Set(history));
-        console.log('founded domains', uniqdomains.length, ' under ', filename)
-        console.log('============start saving==========', filename)
+          const uniqdomains = Array.from(new Set(history));
+          console.log('founded domains', uniqdomains.length, ' under ', filename)
+          console.log('============start saving==========', filename)
 
-        savedomains(uniqdomains, filename)
-        console.log('============finish saving==========', filename)
+          savedomains(uniqdomains, filename)
+          console.log('============finish saving==========', filename)
+
+        }
+      } catch (e) {
+        console.log('couldnot access this page ' + e);
+        browser.close()
 
       }
-    } catch(e) {
-      console.log('couldnot access this page ' +e);
-      browser.close()
-
-    }
     }
     else {
 
@@ -459,11 +521,111 @@ function savedomains(uniqdomains: Array<string>, filename: string) {
 
 
 app.get("/upwork", async (req: Request, res: Response) => {
-  await upwork()
+
+  let obj=getgoogleonesheet('1eXeaUurrqHsS0thkKzyDQdhCMeNYmt9a3pdLa0tPy44','0')
+  obj=JSON.parse(obj)
+  const items=obj.sheet.data.map((element: any) =>element.keyword)
+
+  for (let item of items) {
+
+  await upwork(item)
+}
 })
 
+function getgoogleonesheet(docid: string,index:string) {
 
-async function upwork() {
+  // https://docs.google.com/spreadsheets/d/1FDnff04yl9dN7QOmJooC_5hESHRhFmKUUN1DPvoVrEU/edit#gid=0
+  // docid = '1FDnff04yl9dN7QOmJooC_5hESHRhFmKUUN1DPvoVrEU'
+  const options = {
+    hostname: 'google-sheets-rest.herokuapp.com',
+    port: 443,
+    // path: '/top500',
+    path: '/sheets/' + docid+'/'+index,
+    method: 'GET',
+  }
+
+  let data=''
+  const req = https.request(options, res => {
+    console.log(`statusCode: ${res.statusCode}`)
+  
+    res.on('data', d => {
+      data=d
+      // process.stdout.write(d)
+
+      // {  
+      //   "sheet": {
+      //     "index": 0,
+      //     "data": [
+      //       {
+      //         "name": "Isaac",
+      //         "age": "25",
+      //         "birth day": "25/12/1995"
+      //       },
+      //       {
+      //         "name": "lavinia",
+      //         "age": "20",
+      //         "birth day": "23/08/2000"
+      //       }
+      //     ]
+      //   }
+      // }
+    })
+  })
+  
+  req.on('error', error => {
+    console.error(error)
+  })
+  
+  req.end()  
+  return data
+}
+function getgooglesheets(docid: string) {
+
+  // https://docs.google.com/spreadsheets/d/1FDnff04yl9dN7QOmJooC_5hESHRhFmKUUN1DPvoVrEU/edit#gid=0
+  // docid = '1FDnff04yl9dN7QOmJooC_5hESHRhFmKUUN1DPvoVrEU'
+  const optionstop500 = {
+    hostname: 'google-sheets-rest.herokuapp.com',
+    port: 443,
+    // path: '/top500',
+    path: '/sheets/' + docid,
+    method: 'GET',
+  }
+}
+
+function addrow2googlesheet(docId: string, index: string, data: string) {
+  const options = {
+    hostname: "",
+    port: 443,
+    path: '/sheets/' + docId +'/'+ index
+
+  }
+
+  const req = https.request(options, res => {
+    console.log(`statusCode: ${res.statusCode}`)
+
+    res.on('data', d => {
+      process.stdout.write(d)
+    })
+  })
+
+  req.on('error', error => {
+    console.error(error)
+  })
+
+  req.write(data)
+  req.end()
+
+
+
+  //   {
+  //     "rowValues": [
+  //     {"name": "Dilma", "age": 53},
+  //     {"name": "Pedro", "age": 56}
+  //   ]
+  // }
+
+}
+async function upwork(item: string) {
   const browser = await webkit.launch();
 
   const context = await browser.newContext(
@@ -472,74 +634,82 @@ async function upwork() {
       ignoreHTTPSErrors: true,
       // proxy: { server: 'socks5://127.0.0.1:1080' },
     });
-  await upsertFile('./upwork/upwork-tiktok.json')
-  await upsertFile('./upwork/upwork-youtube.json')
-  await upsertFile('./upwork/upwork-nft.json')
+  // await upsertFile('./upwork/upwork-tiktok.json')
+  // await upsertFile('./upwork/upwork-youtube.json')
+  // await upsertFile('./upwork/upwork-nft.json')
   const p_page = await context.newPage();
-  for (let item of ['tiktok', 'youtube', 'nft']) {
-    const url = "https://www.upwork.com/nx/jobs/search/?q=" + item + "&per_page=10&sort=recency"
-    console.log(url)
-    // https://www.upwork.com/nx/jobs/search/?q=tiktok&sort=recency
-    const res = await p_page.goto(url, { timeout: 0 })
-    // console.log(await res.text())
-    const total = await p_page.locator('div.pt-20:nth-child(3) > div:nth-child(1) > span:nth-child(1) > strong:nth-child(1)').textContent()
-    const totalcount = total.replace(',', '')
-    console.log(totalcount)
-    // .text()
-    const pages = Math.round(totalcount / 50) //  5            5            6
-    console.log('total count in page', totalcount, "===", item)
-    const log = fs.createWriteStream('./upwork/upwork-' + item + '.json', { flags: 'a' });
+  // for (let item of ['tiktok', 'youtube', 'nft']) {
+  const url = "https://www.upwork.com/nx/jobs/search/?q=" + item + "&per_page=10&sort=recency"
+  console.log(url)
+  // https://www.upwork.com/nx/jobs/search/?q=tiktok&sort=recency
+  const res = await p_page.goto(url, { timeout: 0 })
+  // console.log(await res.text())
+  const total = await p_page.locator('div.pt-20:nth-child(3) > div:nth-child(1) > span:nth-child(1) > strong:nth-child(1)').textContent()
+  const totalcount = total.replace(',', '')
+  console.log(totalcount)
+  // .text()
+  const pages = Math.round(totalcount / 50) //  5            5            6
+  // console.log('total count in page', totalcount, "===", item)
+  // const log = fs.createWriteStream('./upwork/upwork-' + item + '.json', { flags: 'a' });
 
-    log.write('[');
+  // log.write('[');
 
-    for (let p = 0; p < pages; p++) {
+  for (let p = 0; p < pages; p++) {
 
-      const pageurl = "https://www.upwork.com/nx/jobs/search/?q=" + item + "&per_page=50&sort=recency" + '&page=' + p
-      await p_page.goto(pageurl, { timeout: 0 })
+    const pageurl = "https://www.upwork.com/nx/jobs/search/?q=" + item + "&per_page=50&sort=recency" + '&page=' + p
+    await p_page.goto(pageurl, { timeout: 0 })
 
-      const joburls = p_page.locator('a[href^="/job/"]')
-      console.log('we detected ', pageurl, await joburls.count())
-      for (let i = 0; i < await joburls.count(); i++) {
+    const joburls = p_page.locator('a[href^="/job/"]')
+    console.log('we detected ', pageurl, await joburls.count())
+    const sheetid = ''
+    for (let i = 0; i < await joburls.count(); i++) {
 
-        let jobtitle = await joburls.nth(i).textContent()
-        jobtitle = jobtitle.replace('\r', '')
-        jobtitle = jobtitle.replace('\n', '').trim()
-        console.log(await joburls.nth(i).getAttribute('href'))
-        const joburl = 'https://www.upwork.com' + await joburls.nth(i).getAttribute('href')
-        await p_page.goto(joburl, { timeout: 0 })
-        let jobdes = await p_page.locator('.job-description > div:nth-child(1)').textContent().trim()
-        let jobskill = await p_page.locator('section.up-card-section:nth-child(5) > div:nth-child(2)').textContent().trim()
-        // console.log(jobdes)
-        // jobdes=jobdes.replace('\n',' ')
-        jobdes = jobdes.replace('\r', ' ')
-        jobskill = jobskill.split("\n").join(" ")
+      let jobtitle = await joburls.nth(i).textContent()
+      jobtitle = jobtitle.replace('\r', '')
+      jobtitle = jobtitle.replace('\n', '').trim()
+      console.log(await joburls.nth(i).getAttribute('href'))
+      const joburl = 'https://www.upwork.com' + await joburls.nth(i).getAttribute('href')
+      await p_page.goto(joburl, { timeout: 0 })
+      let jobdes = await p_page.locator('.job-description > div:nth-child(1)').textContent().trim()
+      let jobskill = await p_page.locator('section.up-card-section:nth-child(5) > div:nth-child(2)').textContent().trim()
+      // console.log(jobdes)
+      // jobdes=jobdes.replace('\n',' ')
+      jobdes = jobdes.replace('\r', ' ')
+      jobskill = jobskill.split("\n").join(" ")
 
-        // console.log(jobdes)
-        jobskill = jobskill.replace('\r', '\n')
+      // console.log(jobdes)
+      jobskill = jobskill.replace('\r', '\n')
 
-        jobskill = jobskill.split("\n").join(",")
-        // console.log(jobdes)
-        const job = {
-          "title": jobtitle,
-          "url": joburl,
-          "des": jobdes,
-          "tag": jobskill
-        }
-        console.log(job)
-        // on new log entry ->
-        log.write(JSON.stringify(job, null, 2));
-        // you can skip closing the stream if you want it to be opened while
-        // a program runs, then file handle will be closed
-        log.write(',');
+      jobskill = jobskill.split("\n").join(",")
+      // console.log(jobdes)
+      const job = [{
+        "id": randomUUID(),
+        "keyword":item,
+        "title": jobtitle,
+        "url": joburl,
+        "des": jobdes,
+        "tag": jobskill,
+        "update": Date.now()
+      }]
+
+      const data = JSON.stringify({
+        "rowValues": job
+      })
+
+      // https://docs.google.com/spreadsheets/d/1eXeaUurrqHsS0thkKzyDQdhCMeNYmt9a3pdLa0tPy44/edit#gid=0
+      addrow2googlesheet('1eXeaUurrqHsS0thkKzyDQdhCMeNYmt9a3pdLa0tPy44', '1', data)
+      // on new log entry ->
+      // log.write(JSON.stringify(job, null, 2));
+      // you can skip closing the stream if you want it to be opened while
+      // a program runs, then file handle will be closed
+      // log.write(',');
 
 
-      }
     }
-    log.write(']');
-
-    log.end();
-
   }
+
+
+
 
 }
 async function top500() {

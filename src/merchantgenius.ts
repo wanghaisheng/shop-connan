@@ -4,7 +4,7 @@ const express = require('express');
 import { Request, Response, Application } from 'express';
 const cors = require("cors");
 const fs = require("fs");
-
+import { sheetQuery } from 'sheetQuery';
 const app: Application = express();
 app.use(cors());
 
@@ -21,16 +21,24 @@ app.get("/merchantgenius", async (req: Request, res: Response) => {
       const uniqdomains = await leibiexiangqing(diff_cato)
       // const catohistory = fs.readFileSync('shopify-merchantgenius.txt').toString().replace(/\r\n/g, '\n').split('\n');
       for (let i = 0; i < uniqdomains.length; i++) {
-        await upsertFile('sitemaps/' + uniqdomains[i] + '-sitemap-urls.txt')
+        // await upsertFile('sitemaps/' + uniqdomains[i] + '-sitemap-urls.txt')
         // const url_list = await get_shopify_defaut_sitemap(uniqdomains[i])
         const sitemapurl = await get_shopify_defaut_sitemap(uniqdomains[i])
         const url_list = await parseSitemap(sitemapurl[0])
-        const log = fs.createWriteStream('sitemaps/' + uniqdomains[i] + '-sitemap-urls.txt', { flags: 'a' });
-        if (url_list.length > 1) {
-          for (let i = 0; i < url_list.length; i++) {
-            log.write(url_list[i] + '\n')
+        sheetQuery()
+        .from('merchantgenius-sitemap-urls')
+        .insertRows([
+          {
+            domain: uniqdomains[i],
+            urls: url_list,
           }
-        }
+        ]);
+        // const log = fs.createWriteStream('sitemaps/' + uniqdomains[i] + '-sitemap-urls.txt', { flags: 'a' });
+        // if (url_list.length > 1) {
+        //   for (let i = 0; i < url_list.length; i++) {
+        //     log.write(url_list[i] + '\n')
+        //   }
+        // }
       }
 
     }
