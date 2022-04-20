@@ -15,6 +15,12 @@ import https from 'https';
 import { GoogleSERP } from 'serp-parser'
 import Sheet from './models/sheets';
 const { google } = require('googleapis');
+import { createClient } from '@supabase/supabase-js'
+
+ // "239482"
+// "239482"
+const supabase = createClient(process.env.supabase_url, process.env.supabase_apikey )
+
 
 const auth = new google.auth.GoogleAuth({
   keyFile: 'astral-oven-346308-83edca6d2187.json',
@@ -368,8 +374,6 @@ var myMkdirSync = function (dir: String) {
 
 
 
-
-
 async function homepage(url: string) {
   const browser = await webkit.launch();
 
@@ -382,15 +386,16 @@ async function homepage(url: string) {
   const page = await context.newPage();
 
 
-  await page.goto('https://www.merchantgenius.io', { timeout: 0 })
+  await page.goto('https://www.merchantgenius.io')
   // console.log(await page.content())
   const yuefen = page.locator('xpath=//html/body/main/div/div[2]/a')
-  await upsertFile('./shopify-catalog.txt')
-  await upsertFile('./shopify-merchantgenius.txt')
 
   const cato = []
   let diff_cato = []
   let diff: boolean = false
+  const { data, error } = await supabase
+  .from('shops')
+  .select('merchantgenius_url')  
   for (let i = 0; i < await yuefen.count(); i++) {
     const suburl = await yuefen.nth(i).getAttribute('href')
     const filename = suburl.split('/').pop()
@@ -398,25 +403,28 @@ async function homepage(url: string) {
     const url = 'https://www.merchantgenius.io' + suburl
     console.log(url)
     // <a href="/shop/date/2020-08-29"
-    const history = fs.readFileSync('./shopify-catalog.txt').toString().replace(/\r\n/g, '\n').split('\n');
-    const log = fs.createWriteStream('./shopify-catalog.txt', { flags: 'a' });
-
     // on new log entry ->
-    console.log(history.includes(url))
-    if (history.includes(url) == false) {
-      log.write(url + "\n");
-      diff = true
-      diff_cato.push(filename)
-    }
-    // you can skip closing the stream if you want it to be opened while
-    // a program runs, then file handle will be closed
-    log.end();
-
     cato.push(filename)
 
   }
-  browser.close()
-  return diff_cato
+  
+  try {
+    if (fs.existsSync(path)) {
+
+      const lastprocess= fs.readFileSync('lastprocess.txt').toString();
+
+      return cato.slice(cato.indexOf(lastprocess))
+
+    }
+    else{
+      return cato
+
+
+    }
+  } catch(err) {
+    return cato
+  }
+
 
 
 }
@@ -438,64 +446,37 @@ async function leibiexiangqing(cato: Array<string>) {
     const filename = cato[i]
     const url = 'https://www.merchantgenius.io/shop/date/' + filename
 
-
-    const history: Array<string> = await upsertFile("./merchantgenius/shopify-" + filename + ".txt")
-    console.log(filename, ' contains ', history.length)
     if (history.length == 1) {
       console.log('dig url published on ', url)
-      try {
-        await p_page.goto(url, { timeout: 0 })
-        // await p_page.goto(url)
 
-        // console.log(await p_page.content())
-        const shopurls = p_page.locator('.blogImage [href^="/shop/url/"] .dateLinks')
-        console.log('loading exisit domain', history.length)
+      await p_page.goto(url)
+      // await p_page.goto(url)
 
-        const tmp = p_page.locator('div.container:nth-child(4)')
-        const t = await tmp.textContent()
-        const url_count = t.split('stores were found.')[0].split('A total of ')[1]
-        console.log('total count in page', url_count, 'we detected ', await shopurls.count())
+      // console.log(await p_page.content())
+      const shopurls = p_page.locator('.blogImage [href^="/shop/url/"]')
+      console.log('loading exisit domain', history.length)
 
-        if (url_count < history.length) {
-          console.log('there is need to   saving')
-        } else {
-          // <a style="text-decoration:none; color:grey; text-transform: uppercase;
-          // font-size: 85%;" href="/shop/date/2022-04-03">See all from April 3, 2022 →</a>
+      const tmp = p_page.locator('div.container:nth-child(4)')
+      const t = await tmp.textContent()
+      const url_count = t.split('stores were found.')[0].split('A total of ')[1]
+      console.log('total count in page', url_count, 'we detected ', await shopurls.count())
 
-          // <a href="/shop/date/2022-04-02"><button style="cursor: pointer;" class="dateLinks">04/02</button></a>
-          for (let i = 1; i < await shopurls.count(); i++) {
-            const url = await shopurls.nth(i).getAttribute('href')
-            const domain = url.split('/shop/url/').pop()
-            if (history.indexOf(domain) > -1) {
-              console.log('this domain is done', domain)
-            } else {
-              domains.push(domain)
-              history.push(domain)
-              console.log('bingo', domain)
 
-            }
-          }
-          const uniqdomains = Array.from(new Set(history));
-          console.log('founded domains', uniqdomains.length, ' under ', filename)
-          console.log('============start saving==========', filename)
-
-          savedomains(uniqdomains, filename)
-          console.log('============finish saving==========', filename)
-
+        for (let i = 0; i < await shopurls.count(); i++) {
+          const url = await shopurls.nth(i).getAttribute('href')
+          const domain = url.split('/shop/url/').pop()
+          const { data, error } = await supabase
+          .from('shops')
+          .insert([
+            { domain: domain, merchantgenius_url: filename ,ecommerce_platform:"shopify"}
+  
+          ])
         }
-      } catch (e) {
-        console.log('couldnot access this page ' + e);
-        browser.close()
+
 
       }
-    }
-    else {
 
-      console.log('this cato has been scraped', cato[i])
-    }
   }
-  browser.close()
-
   return Array.from(new Set(domains));
 }
 function savedomains(uniqdomains: Array<string>, filename: string) {

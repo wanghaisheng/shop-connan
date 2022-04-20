@@ -16,24 +16,8 @@ app.get("/merchantgenius", async (req: Request, res: Response) => {
   try {
 
     const diff_cato = await homepage('')
-    if (diff_cato.length > 1) {
-      const uniqdomains = await leibiexiangqing(diff_cato)
-      // const catohistory = fs.readFileSync('shopify-merchantgenius.txt').toString().replace(/\r\n/g, '\n').split('\n');
-      for (let i = 0; i < uniqdomains.length; i++) {
-        // await upsertFile('sitemaps/' + uniqdomains[i] + '-sitemap-urls.txt')
-        // const url_list = await get_shopify_defaut_sitemap(uniqdomains[i])
-        const sitemapurl = await get_shopify_defaut_sitemap(uniqdomains[i])
-        const url_list = await parseSitemap(sitemapurl[0])
+    const uniqdomains = await leibiexiangqing(diff_cato)
 
-        // const log = fs.createWriteStream('sitemaps/' + uniqdomains[i] + '-sitemap-urls.txt', { flags: 'a' });
-        // if (url_list.length > 1) {
-        //   for (let i = 0; i < url_list.length; i++) {
-        //     log.write(url_list[i] + '\n')
-        //   }
-        // }
-      }
-
-    }
   } catch (error) {
     console.log('error===', error)
 
